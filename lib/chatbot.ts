@@ -9,6 +9,10 @@ export interface ChatMessage {
 
 export const sendChatMessage = async (message: string): Promise<string> => {
   try {
+    if (!message.trim()) {
+      throw new Error('Message vide');
+    }
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -53,22 +57,28 @@ Domaines d'expertise :
     });
 
     if (!response.ok) {
-      throw new Error('API request failed');
+      throw new Error(`Erreur API: ${response.status}`);
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || 'Désolé, je n\'ai pas pu traiter votre demande.';
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Réponse API invalide');
+    }
+
+    return data.choices[0].message.content || 'Désolé, je n\'ai pas pu traiter votre demande.';
   } catch (error) {
-    console.error('Chatbot error:', error);
+    console.error('Erreur chatbot:', error);
     return getFallbackResponse(message);
   }
 };
 
 const getFallbackResponse = (message: string): string => {
-  const lowerMessage = message.toLowerCase();
-  
-  if (lowerMessage.includes('visa')) {
-    return `🛂 **Demandes de visa**
+  try {
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('visa')) {
+      return `🛂 **Demandes de visa**
 
 Pour les demandes de visa, voici mes recommandations générales :
 
@@ -78,10 +88,10 @@ Pour les demandes de visa, voici mes recommandations générales :
 • **Gardez des copies** de tous vos documents
 
 Chaque destination a ses propres critères et délais. Puis-je vous aider avec un pays en particulier ? 🌍`;
-  }
-  
-  if (lowerMessage.includes('document')) {
-    return `📄 **Documents pour visa**
+    }
+    
+    if (lowerMessage.includes('document')) {
+      return `📄 **Documents pour visa**
 
 Les documents généralement requis :
 
@@ -94,10 +104,10 @@ Les documents généralement requis :
 • **Assurance voyage** (selon le pays)
 
 Voulez-vous des informations spécifiques pour une destination ? 🎯`;
-  }
-  
-  if (lowerMessage.includes('délai') || lowerMessage.includes('temps') || lowerMessage.includes('durée')) {
-    return `⏰ **Délais de traitement**
+    }
+    
+    if (lowerMessage.includes('délai') || lowerMessage.includes('temps') || lowerMessage.includes('durée')) {
+      return `⏰ **Délais de traitement**
 
 Les délais varient selon les pays :
 
@@ -108,10 +118,10 @@ Les délais varient selon les pays :
 **Conseil** : Faites votre demande au moins 1 mois avant votre départ pour éviter le stress ! 
 
 Quel pays vous intéresse ? Je peux vous donner des délais plus précis. 🗓️`;
-  }
+    }
 
-  if (lowerMessage.includes('coût') || lowerMessage.includes('prix') || lowerMessage.includes('frais')) {
-    return `💰 **Coûts des visas**
+    if (lowerMessage.includes('coût') || lowerMessage.includes('prix') || lowerMessage.includes('frais')) {
+      return `💰 **Coûts des visas**
 
 Les frais varient considérablement :
 
@@ -126,10 +136,10 @@ Les frais varient considérablement :
 • Frais de service des centres de visa
 
 Pour quel pays souhaitez-vous connaître les coûts ? 🌍`;
-  }
+    }
 
-  if (lowerMessage.includes('voyage') || lowerMessage.includes('conseil')) {
-    return `✈️ **Conseils de voyage**
+    if (lowerMessage.includes('voyage') || lowerMessage.includes('conseil')) {
+      return `✈️ **Conseils de voyage**
 
 Voici mes conseils essentiels :
 
@@ -146,9 +156,9 @@ Voici mes conseils essentiels :
 • Restez en contact avec vos proches
 
 Quelle destination vous intéresse ? Je peux vous donner des conseils spécifiques ! 🗺️`;
-  }
-  
-  return `👋 **Bonjour !**
+    }
+    
+    return `👋 **Bonjour !**
 
 Je suis DORA, votre assistant voyage spécialisé ! Je peux vous aider avec :
 
@@ -160,27 +170,36 @@ Je suis DORA, votre assistant voyage spécialisé ! Je peux vous aider avec :
 • ✈️ **Préparation de voyage**
 
 N'hésitez pas à me poser vos questions spécifiques ! Comment puis-je vous aider aujourd'hui ? 😊`;
+  } catch (error) {
+    console.error('Erreur dans la réponse de fallback:', error);
+    return "Désolé, je rencontre des difficultés techniques. Veuillez réessayer dans quelques instants.";
+  }
 };
 
 export const getChatHistory = (): ChatMessage[] => {
-  if (typeof window === 'undefined') return [];
-  
-  const history = localStorage.getItem('chatHistory');
-  if (!history) return [];
-  
   try {
+    if (typeof window === 'undefined') return [];
+    
+    const history = localStorage.getItem('chatHistory');
+    if (!history) return [];
+    
     const parsed = JSON.parse(history);
     return parsed.map((msg: any) => ({
       ...msg,
       timestamp: new Date(msg.timestamp)
     }));
-  } catch {
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'historique:', error);
     return [];
   }
 };
 
 export const saveChatHistory = (messages: ChatMessage[]) => {
-  if (typeof window === 'undefined') return;
-  
-  localStorage.setItem('chatHistory', JSON.stringify(messages));
+  try {
+    if (typeof window === 'undefined') return;
+    
+    localStorage.setItem('chatHistory', JSON.stringify(messages));
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde de l\'historique:', error);
+  }
 };

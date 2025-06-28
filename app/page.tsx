@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
+import { CountrySelector } from '@/components/visa/CountrySelector';
 import countries from '@/data/countries.json';
 
 const heroImages = [
@@ -89,10 +90,13 @@ const stats = [
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedOrigin, setSelectedOrigin] = useState<any>(null);
+  const [selectedDestination, setSelectedDestination] = useState<any>(null);
   const [simulatorData, setSimulatorData] = useState({
     country: '',
     cost: 0,
-    duration: ''
+    duration: '',
+    visaRequired: false
   });
   const { isAuthenticated } = useAuth();
 
@@ -102,6 +106,34 @@ export default function HomePage() {
     }, 5000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    // Détecter automatiquement le pays d'origine basé sur la localisation (simulation)
+    try {
+      const userLocale = navigator.language || 'fr-FR';
+      const countryCode = userLocale.split('-')[1];
+      
+      if (countryCode) {
+        const detectedCountry = countries.find(c => c.code === countryCode);
+        if (detectedCountry && !selectedOrigin) {
+          setSelectedOrigin(detectedCountry);
+        }
+      }
+    } catch (error) {
+      console.log('Impossible de détecter le pays automatiquement');
+    }
+  }, [selectedOrigin]);
+
+  useEffect(() => {
+    if (selectedDestination) {
+      setSimulatorData({
+        country: selectedDestination.name,
+        cost: selectedDestination.averageCost || 0,
+        duration: selectedDestination.processingTime || 'N/A',
+        visaRequired: selectedDestination.visaRequired
+      });
+    }
+  }, [selectedDestination]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % heroImages.length);
@@ -118,16 +150,37 @@ export default function HomePage() {
     }
   };
 
-  const handleCountrySelect = (countryName: string) => {
-    const country = countries.find(c => c.name === countryName);
-    if (country) {
-      setSimulatorData({
-        country: country.name,
-        cost: country.averageCost,
-        duration: country.processingTime
-      });
+  const getVisaRequirements = () => {
+    if (!selectedOrigin || !selectedDestination) return null;
+    
+    // Logique simplifiée pour déterminer les exigences de visa
+    if (selectedOrigin.id === selectedDestination.id) {
+      return { required: false, message: "Voyage domestique - aucun visa requis" };
     }
+    
+    // Exemples de logique basée sur les accords bilatéraux
+    const exemptCountries = {
+      'FR': ['SN', 'ML', 'CI', 'BF', 'MA', 'TN'], // France exempt pour certains pays africains
+      'SN': ['ML', 'CI', 'BF', 'FR'], // Sénégal exempt pour CEDEAO + France
+      'ML': ['SN', 'CI', 'BF', 'FR'],
+      'CI': ['SN', 'ML', 'BF', 'FR'],
+      'BF': ['SN', 'ML', 'CI', 'FR']
+    };
+
+    const originExemptions = exemptCountries[selectedOrigin.code as keyof typeof exemptCountries] || [];
+    const isExempt = originExemptions.includes(selectedDestination.code);
+
+    if (isExempt) {
+      return { required: false, message: "Exemption de visa selon les accords bilatéraux" };
+    }
+
+    return { 
+      required: selectedDestination.visaRequired, 
+      message: selectedDestination.visaRequired ? "Visa requis" : "Aucun visa requis"
+    };
   };
+
+  const visaRequirements = getVisaRequirements();
 
   return (
     <div className="min-h-screen">
@@ -461,7 +514,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Visa Cost Simulator with enhanced 3D */}
+      {/* Enhanced Visa Simulator with Country Selection */}
       <section className="py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0">
@@ -488,7 +541,7 @@ export default function HomePage() {
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 30, rotateX: 20 }}
               whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
@@ -496,10 +549,10 @@ export default function HomePage() {
               className="text-center mb-12"
             >
               <h2 className="text-4xl font-bold text-white mb-6">
-                Simulateur de Coût de Visa
+                Simulateur de Visa Intelligent
               </h2>
               <p className="text-xl text-blue-100">
-                Estimez rapidement le coût et la durée de votre demande
+                Sélectionnez vos pays d'origine et de destination pour une estimation personnalisée
               </p>
             </motion.div>
 
@@ -515,43 +568,17 @@ export default function HomePage() {
               className="preserve-3d"
             >
               <Card className="p-8 shadow-2xl border-0 glass-effect">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <div>
                     <h3 className="text-2xl font-semibold mb-6 text-white">
-                      Sélectionnez votre destination
+                      Sélectionnez vos pays
                     </h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      {countries.slice(0, 6).map((country, index) => (
-                        <motion.button
-                          key={country.id}
-                          onClick={() => handleCountrySelect(country.name)}
-                          className={`p-3 rounded-lg border-2 transition-all text-left ${
-                            simulatorData.country === country.name
-                              ? 'border-blue-400 bg-blue-500/20'
-                              : 'border-white/20 hover:border-blue-400/50 hover:bg-white/10'
-                          }`}
-                          whileHover={{ 
-                            scale: 1.05, 
-                            rotateY: 10,
-                            boxShadow: '0 10px 20px rgba(59, 130, 246, 0.3)'
-                          }}
-                          whileTap={{ scale: 0.95 }}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <motion.span 
-                              className="text-2xl"
-                              whileHover={{ scale: 1.2, rotate: 10 }}
-                            >
-                              {country.flag}
-                            </motion.span>
-                            <span className="font-medium text-white">{country.name}</span>
-                          </div>
-                        </motion.button>
-                      ))}
-                    </div>
+                    <CountrySelector
+                      selectedOrigin={selectedOrigin}
+                      selectedDestination={selectedDestination}
+                      onOriginChange={setSelectedOrigin}
+                      onDestinationChange={setSelectedDestination}
+                    />
                   </div>
 
                   <motion.div 
@@ -563,7 +590,7 @@ export default function HomePage() {
                     }}
                   >
                     <h3 className="text-2xl font-semibold mb-6">Estimation</h3>
-                    {simulatorData.country ? (
+                    {selectedOrigin && selectedDestination ? (
                       <motion.div 
                         className="space-y-4"
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -575,34 +602,52 @@ export default function HomePage() {
                           whileHover={{ x: 5 }}
                         >
                           <MapPin className="h-5 w-5 text-blue-200" />
-                          <span className="text-lg">{simulatorData.country}</span>
+                          <span className="text-lg">
+                            {selectedOrigin.name} → {selectedDestination.name}
+                          </span>
                         </motion.div>
-                        <motion.div 
-                          className="flex items-center space-x-3"
-                          whileHover={{ x: 5 }}
-                        >
-                          <CreditCard className="h-5 w-5 text-blue-200" />
-                          <motion.span 
-                            className="text-2xl font-bold"
-                            animate={{ 
-                              textShadow: [
-                                '0 0 10px rgba(255, 255, 255, 0.5)',
-                                '0 0 20px rgba(255, 255, 255, 0.8)',
-                                '0 0 10px rgba(255, 255, 255, 0.5)'
-                              ]
-                            }}
-                            transition={{ duration: 2, repeat: Infinity }}
+
+                        {visaRequirements && (
+                          <motion.div 
+                            className="flex items-center space-x-3"
+                            whileHover={{ x: 5 }}
                           >
-                            {simulatorData.cost}€
-                          </motion.span>
-                        </motion.div>
-                        <motion.div 
-                          className="flex items-center space-x-3"
-                          whileHover={{ x: 5 }}
-                        >
-                          <Clock className="h-5 w-5 text-blue-200" />
-                          <span className="text-lg">{simulatorData.duration}</span>
-                        </motion.div>
+                            <Shield className="h-5 w-5 text-blue-200" />
+                            <span className="text-lg">{visaRequirements.message}</span>
+                          </motion.div>
+                        )}
+
+                        {simulatorData.visaRequired && (
+                          <>
+                            <motion.div 
+                              className="flex items-center space-x-3"
+                              whileHover={{ x: 5 }}
+                            >
+                              <CreditCard className="h-5 w-5 text-blue-200" />
+                              <motion.span 
+                                className="text-2xl font-bold"
+                                animate={{ 
+                                  textShadow: [
+                                    '0 0 10px rgba(255, 255, 255, 0.5)',
+                                    '0 0 20px rgba(255, 255, 255, 0.8)',
+                                    '0 0 10px rgba(255, 255, 255, 0.5)'
+                                  ]
+                                }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                              >
+                                {simulatorData.cost}€
+                              </motion.span>
+                            </motion.div>
+                            <motion.div 
+                              className="flex items-center space-x-3"
+                              whileHover={{ x: 5 }}
+                            >
+                              <Clock className="h-5 w-5 text-blue-200" />
+                              <span className="text-lg">{simulatorData.duration}</span>
+                            </motion.div>
+                          </>
+                        )}
+
                         <motion.div
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
@@ -611,8 +656,8 @@ export default function HomePage() {
                             asChild
                             className="w-full mt-6 bg-white text-blue-600 hover:bg-gray-100 shadow-lg"
                           >
-                            <Link href={`/countries/${simulatorData.country.toLowerCase()}`}>
-                              Commencer ma demande
+                            <Link href={`/countries/${selectedDestination.code.toLowerCase()}`}>
+                              {simulatorData.visaRequired ? 'Commencer ma demande' : 'Découvrir la destination'}
                             </Link>
                           </Button>
                         </motion.div>
@@ -625,7 +670,7 @@ export default function HomePage() {
                       >
                         <Globe className="h-12 w-12 text-blue-200 mx-auto mb-4" />
                         <p className="text-blue-100">
-                          Sélectionnez un pays pour voir l'estimation
+                          Sélectionnez vos pays d'origine et de destination pour voir l'estimation
                         </p>
                       </motion.div>
                     )}

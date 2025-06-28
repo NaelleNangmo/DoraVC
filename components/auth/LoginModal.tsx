@@ -34,17 +34,29 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     setIsLoading(true);
 
     try {
+      if (!loginData.email.trim() || !loginData.password.trim()) {
+        toast.error('Veuillez remplir tous les champs');
+        setIsLoading(false);
+        return;
+      }
+
       const user = authenticateUser(loginData.email, loginData.password);
       if (user) {
         login(user);
         toast.success('Connexion réussie !');
         onOpenChange(false);
         setLoginData({ email: '', password: '' });
+        
+        // Rafraîchir la page après connexion
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } else {
         toast.error('Email ou mot de passe incorrect');
       }
     } catch (error) {
-      toast.error('Erreur de connexion');
+      console.error('Erreur de connexion:', error);
+      toast.error('Erreur de connexion. Veuillez réessayer.');
     } finally {
       setIsLoading(false);
     }
@@ -54,13 +66,33 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     e.preventDefault();
     setIsLoading(true);
 
-    if (registerData.password !== registerData.confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas');
-      setIsLoading(false);
-      return;
-    }
-
     try {
+      if (!registerData.name.trim() || !registerData.email.trim() || !registerData.password.trim()) {
+        toast.error('Veuillez remplir tous les champs obligatoires');
+        setIsLoading(false);
+        return;
+      }
+
+      if (registerData.password.length < 6) {
+        toast.error('Le mot de passe doit contenir au moins 6 caractères');
+        setIsLoading(false);
+        return;
+      }
+
+      if (registerData.password !== registerData.confirmPassword) {
+        toast.error('Les mots de passe ne correspondent pas');
+        setIsLoading(false);
+        return;
+      }
+
+      // Vérifier si l'email existe déjà
+      const existingUser = authenticateUser(registerData.email, 'dummy');
+      if (existingUser) {
+        toast.error('Un compte avec cet email existe déjà');
+        setIsLoading(false);
+        return;
+      }
+
       const newUser = {
         id: Date.now(),
         name: registerData.name,
@@ -78,8 +110,14 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
       toast.success('Compte créé avec succès !');
       onOpenChange(false);
       setRegisterData({ name: '', email: '', password: '', confirmPassword: '' });
+      
+      // Rafraîchir la page après inscription
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
-      toast.error('Erreur lors de la création du compte');
+      console.error('Erreur lors de la création du compte:', error);
+      toast.error('Erreur lors de la création du compte. Veuillez réessayer.');
     } finally {
       setIsLoading(false);
     }
@@ -145,6 +183,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                       onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                       className="pl-10 glass-effect border-white/20"
                       required
+                      disabled={isLoading}
                     />
                   </div>
                 </motion.div>
@@ -164,6 +203,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                       onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                       className="pl-10 pr-10 glass-effect border-white/20"
                       required
+                      disabled={isLoading}
                     />
                     <motion.button
                       type="button"
@@ -171,6 +211,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                       onClick={() => setShowPassword(!showPassword)}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
+                      disabled={isLoading}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -228,6 +269,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                     onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                     className="glass-effect border-white/20"
                     required
+                    disabled={isLoading}
                   />
                 </motion.div>
 
@@ -244,6 +286,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                     onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                     className="glass-effect border-white/20"
                     required
+                    disabled={isLoading}
                   />
                 </motion.div>
 
@@ -260,6 +303,8 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                     onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                     className="glass-effect border-white/20"
                     required
+                    disabled={isLoading}
+                    minLength={6}
                   />
                 </motion.div>
 
@@ -276,6 +321,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                     onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
                     className="glass-effect border-white/20"
                     required
+                    disabled={isLoading}
                   />
                 </motion.div>
 
