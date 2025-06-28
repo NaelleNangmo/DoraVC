@@ -22,13 +22,6 @@ interface CountryPageProps {
   };
 }
 
-// Generate static params for all countries
-export async function generateStaticParams() {
-  return countries.map((country) => ({
-    code: country.code.toLowerCase(),
-  }));
-}
-
 export default function CountryPage({ params }: CountryPageProps) {
   const [country, setCountry] = useState<any>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('EUR');
