@@ -1,0 +1,75 @@
+{
+  "steps": [
+    {
+      "id": 1,
+      "title": "Recherche des Exigences",
+      "description": "Identifiez les documents et conditions nécessaires pour votre destination",
+      "progress": 16.67,
+      "icon": "Search",
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
+      "tasks": [
+        "Vérifier la validité du passeport (minimum 6 mois)",
+        "Consulter les exigences spécifiques du pays",
+        "Identifier les documents requis",
+        "Vérifier les délais de traitement"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Rassemblement des Documents",
+      "description": "Collectez et préparez tous les documents nécessaires",
+      "progress": 33.33,
+      "icon": "FileText",
+      "image": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&h=300&fit=crop",
+      "tasks": [
+        "Photo d'identité au format requis",
+        "Formulaire de demande complété",
+        "Justificatifs financiers",
+        "Lettre d'invitation (si nécessaire)",
+        "Réservation d'hôtel/billet d'avion"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Remplissage de la Demande",
+      "description": "Complétez le formulaire officiel de demande de visa",
+      "progress": 50,
+      "icon": "Edit",
+      "image": "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
+      "tasks": [
+        "Informations personnelles",
+        "Détails du voyage",
+        "Informations professionnelles",
+        "Historique de voyage"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Soumission de la Demande",
+      "description": "Déposez votre dossier complet auprès des autorités compétentes",
+      "progress": 66.67,
+      "icon": "Send",
+      "image": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&h=300&fit=crop",
+      "tasks": [
+        "Prendre rendez-vous au consulat/centre de visa",
+        "Préparer le dossier physique",
+        "Payer les frais de visa",
+        "Soumettre la demande"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Suivi de la Demande",
+      "description": "Suivez l'évolution de votre demande jusqu'à l'obtention du visa",
+      "progress": 100,
+      "icon": "Clock",
+      "image": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop",
+      "tasks": [
+        "Vérifier le statut en ligne",
+        "Attendre la décision",
+        "Récupérer le passeport",
+        "Vérifier les informations du visa"
+      ]
+    }
+  ]
+}

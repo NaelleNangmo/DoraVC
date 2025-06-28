@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "name": "Admin DORA",
+    "email": "admin@dora.travel",
+    "password": "admin123",
+    "role": "admin",
+    "avatar": "https://images.unsplash.com/photo-1556157382-97eda2d62296?w=150&h=150&fit=crop&crop=face",
+    "permissions": ["posts", "users", "countries", "content"]
+  }
+]

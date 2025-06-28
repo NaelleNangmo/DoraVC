@@ -1,0 +1,54 @@
+[
+  {
+    "id": 1,
+    "countryId": 1,
+    "name": "Toqué!",
+    "cuisine": "Française contemporaine",
+    "priceRange": "€€€€",
+    "rating": 4.8,
+    "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop",
+    "location": "Montréal, Québec",
+    "averagePrice": 120,
+    "currency": "CAD",
+    "description": "Restaurant gastronomique réputé pour sa cuisine créative"
+  },
+  {
+    "id": 2,
+    "countryId": 2,
+    "name": "L'Ambroisie",
+    "cuisine": "Française",
+    "priceRange": "€€€€",
+    "rating": 4.9,
+    "image": "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=400&h=300&fit=crop",
+    "location": "Paris 4ème",
+    "averagePrice": 350,
+    "currency": "EUR",
+    "description": "Restaurant trois étoiles Michelin sur la place des Vosges"
+  },
+  {
+    "id": 3,
+    "countryId": 3,
+    "name": "Sukiyabashi Jiro",
+    "cuisine": "Sushi",
+    "priceRange": "€€€€",
+    "rating": 4.7,
+    "image": "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&h=300&fit=crop",
+    "location": "Tokyo, Japon",
+    "averagePrice": 35000,
+    "currency": "JPY",
+    "description": "Restaurant de sushi légendaire du maître Jiro Ono"
+  },
+  {
+    "id": 4,
+    "countryId": 4,
+    "name": "Eleven Madison Park",
+    "cuisine": "Américaine moderne",
+    "priceRange": "€€€€",
+    "rating": 4.6,
+    "image": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop",
+    "location": "New York, NY",
+    "averagePrice": 335,
+    "currency": "USD",
+    "description": "Restaurant végétalien trois étoiles Michelin"
+  }
+]

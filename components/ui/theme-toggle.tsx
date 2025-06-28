@@ -1,0 +1,83 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Sun, Moon, Monitor } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useTheme } from '@/hooks/use-theme';
+
+export function ThemeToggle() {
+  const { theme, changeTheme, mounted } = useTheme();
+
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="sm" className="w-9 h-9 p-0">
+        <Sun className="h-4 w-4" />
+      </Button>
+    );
+  }
+
+  const getIcon = () => {
+    switch (theme) {
+      case 'light':
+        return <Sun className="h-4 w-4" />;
+      case 'dark':
+        return <Moon className="h-4 w-4" />;
+      case 'system':
+        return <Monitor className="h-4 w-4" />;
+      default:
+        return <Sun className="h-4 w-4" />;
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <motion.div
+          whileHover={{ scale: 1.05, rotateY: 10 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Button variant="ghost" size="sm" className="w-9 h-9 p-0 glass-effect">
+            <motion.div
+              animate={{ rotate: theme === 'dark' ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {getIcon()}
+            </motion.div>
+            <span className="sr-only">Changer le thème</span>
+          </Button>
+        </motion.div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="glass-effect">
+        <DropdownMenuItem onClick={() => changeTheme('light')}>
+          <motion.div
+            className="flex items-center"
+            whileHover={{ x: 5 }}
+          >
+            <Sun className="mr-2 h-4 w-4" />
+            <span>Clair</span>
+          </motion.div>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeTheme('dark')}>
+          <motion.div
+            className="flex items-center"
+            whileHover={{ x: 5 }}
+          >
+            <Moon className="mr-2 h-4 w-4" />
+            <span>Sombre</span>
+          </motion.div>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeTheme('system')}>
+          <motion.div
+            className="flex items-center"
+            whileHover={{ x: 5 }}
+          >
+            <Monitor className="mr-2 h-4 w-4" />
+            <span>Système</span>
+          </motion.div>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

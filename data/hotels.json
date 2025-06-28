@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "countryId": 1,
+    "name": "Fairmont Chateau Lake Louise",
+    "price": 450,
+    "currency": "CAD",
+    "rating": 5,
+    "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop",
+    "location": "Lake Louise, Alberta",
+    "amenities": ["WiFi", "Spa", "Restaurant", "Ski"],
+    "description": "Hôtel de luxe avec vue sur le lac Louise et les montagnes Rocheuses"
+  },
+  {
+    "id": 2,
+    "countryId": 1,
+    "name": "Hotel Le Germain Toronto",
+    "price": 280,
+    "currency": "CAD",
+    "rating": 4,
+    "image": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=300&fit=crop",
+    "location": "Toronto, Ontario",
+    "amenities": ["WiFi", "Fitness", "Restaurant", "Bar"],
+    "description": "Hôtel boutique moderne au cœur de Toronto"
+  },
+  {
+    "id": 3,
+    "countryId": 2,
+    "name": "Hotel Plaza Athénée",
+    "price": 800,
+    "currency": "EUR",
+    "rating": 5,
+    "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&h=300&fit=crop",
+    "location": "Paris 8ème",
+    "amenities": ["WiFi", "Spa", "Restaurant", "Concierge"],
+    "description": "Palace parisien sur l'avenue Montaigne"
+  },
+  {
+    "id": 4,
+    "countryId": 3,
+    "name": "Park Hyatt Tokyo",
+    "price": 45000,
+    "currency": "JPY",
+    "rating": 5,
+    "image": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
+    "location": "Shinjuku, Tokyo",
+    "amenities": ["WiFi", "Spa", "Restaurant", "Fitness"],
+    "description": "Hôtel de luxe avec vue panoramique sur Tokyo"
+  },
+  {
+    "id": 5,
+    "countryId": 4,
+    "name": "The Plaza Hotel",
+    "price": 695,
+    "currency": "USD",
+    "rating": 5,
+    "image": "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=400&h=300&fit=crop",
+    "location": "New York, NY",
+    "amenities": ["WiFi", "Spa", "Restaurant", "Concierge"],
+    "description": "Hôtel légendaire face à Central Park"
+  }
+]

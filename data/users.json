@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "name": "Jean Dupont",
+    "email": "jean@example.com",
+    "password": "password123",
+    "role": "user",
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+    "joinedDate": "2024-01-15",
+    "preferences": {
+      "language": "fr",
+      "currency": "EUR"
+    }
+  },
+  {
+    "id": 2,
+    "name": "Marie Martin",
+    "email": "marie@example.com",
+    "password": "password123",
+    "role": "user",
+    "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+    "joinedDate": "2024-02-20",
+    "preferences": {
+      "language": "fr",
+      "currency": "USD"
+    }
+  },
+  {
+    "id": 3,
+    "name": "Pierre Durand",
+    "email": "pierre@example.com",
+    "password": "password123",
+    "role": "user",
+    "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    "joinedDate": "2024-03-10",
+    "preferences": {
+      "language": "fr",
+      "currency": "XAF"
+    }
+  }
+]

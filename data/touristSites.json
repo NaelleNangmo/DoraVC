@@ -1,0 +1,54 @@
+[
+  {
+    "id": 1,
+    "countryId": 1,
+    "name": "Chutes du Niagara",
+    "category": "Nature",
+    "image": "https://images.unsplash.com/photo-1489447068241-b3490214e879?w=400&h=300&fit=crop",
+    "location": "Ontario/New York",
+    "description": "Spectaculaires chutes d'eau à la frontière Canada-États-Unis",
+    "visitDuration": "1-2 jours",
+    "bestTime": "Mai-Octobre",
+    "entryFee": 0,
+    "currency": "CAD"
+  },
+  {
+    "id": 2,
+    "countryId": 2,
+    "name": "Tour Eiffel",
+    "category": "Monument",
+    "image": "https://images.unsplash.com/photo-1549144511-f099e773c147?w=400&h=300&fit=crop",
+    "location": "Paris",
+    "description": "Symbole emblématique de Paris et de la France",
+    "visitDuration": "2-3 heures",
+    "bestTime": "Toute l'année",
+    "entryFee": 29,
+    "currency": "EUR"
+  },
+  {
+    "id": 3,
+    "countryId": 3,
+    "name": "Mont Fuji",
+    "category": "Nature",
+    "image": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
+    "location": "Honshu",
+    "description": "Montagne sacrée et symbole du Japon",
+    "visitDuration": "1-2 jours",
+    "bestTime": "Mai-Septembre",
+    "entryFee": 1000,
+    "currency": "JPY"
+  },
+  {
+    "id": 4,
+    "countryId": 4,
+    "name": "Statue de la Liberté",
+    "category": "Monument",
+    "image": "https://images.unsplash.com/photo-1526472129813-f17ef06064a5?w=400&h=300&fit=crop",
+    "location": "New York",
+    "description": "Symbole de la liberté et de l'amitié franco-américaine",
+    "visitDuration": "3-4 heures",
+    "bestTime": "Avril-Octobre",
+    "entryFee": 21,
+    "currency": "USD"
+  }
+]

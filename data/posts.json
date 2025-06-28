@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "title": "Mon expérience visa Canada",
+    "content": "Processus assez long mais bien organisé. Les documents demandés étaient clairs et le suivi en ligne très pratique.",
+    "image": "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=400&h=300&fit=crop",
+    "status": "approved",
+    "countryId": 1,
+    "rating": 4,
+    "createdAt": "2024-11-15T10:30:00Z",
+    "approvedAt": "2024-11-15T14:20:00Z",
+    "tags": ["visa", "canada", "expérience"],
+    "likes": 12,
+    "comments": 3
+  },
+  {
+    "id": 2,
+    "userId": 2,
+    "title": "Voyage au Japon - Conseils pratiques",
+    "content": "Le Japon est un pays fascinant ! Voici mes conseils pour bien préparer votre voyage : réservez le JR Pass, apprenez quelques mots de japonais...",
+    "image": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=300&fit=crop",
+    "status": "approved",
+    "countryId": 3,
+    "rating": 5,
+    "createdAt": "2024-11-14T08:15:00Z",
+    "approvedAt": "2024-11-14T16:45:00Z",
+    "tags": ["japon", "voyage", "conseils"],
+    "likes": 28,
+    "comments": 7
+  },
+  {
+    "id": 3,
+    "userId": 3,
+    "title": "Demande de visa USA en cours",
+    "content": "J'ai soumis ma demande de visa pour les États-Unis il y a une semaine. En attente de la réponse...",
+    "image": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=300&fit=crop",
+    "status": "pending",
+    "countryId": 4,
+    "rating": 0,
+    "createdAt": "2024-11-20T14:22:00Z",
+    "tags": ["usa", "visa", "attente"],
+    "likes": 0,
+    "comments": 0
+  }
+]
