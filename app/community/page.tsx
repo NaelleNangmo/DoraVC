@@ -34,101 +34,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
-import countries from '@/data/countries.json';
-
-interface Post {
-  id: number;
-  userId: number;
-  userName: string;
-  userAvatar: string;
-  title: string;
-  content: string;
-  image?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  countryId?: number;
-  countryName?: string;
-  rating?: number;
-  createdAt: string;
-  approvedAt?: string;
-  tags: string[];
-  likes: number;
-  dislikes: number;
-  comments: number;
-  views: number;
-  userLiked?: boolean;
-  userDisliked?: boolean;
-}
-
-const initialPosts: Post[] = [
-  {
-    id: 1,
-    userId: 1,
-    userName: "Jean Dupont",
-    userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    title: "Mon expérience visa Canada - Tout s'est bien passé !",
-    content: "Salut tout le monde ! Je voulais partager mon expérience récente avec la demande de visa pour le Canada. Le processus était assez long mais bien organisé. Les documents demandés étaient clairs et le suivi en ligne très pratique. J'ai reçu mon visa en 3 semaines exactement. Quelques conseils : préparez tous vos documents à l'avance, soyez précis dans vos réponses, et n'hésitez pas à contacter l'ambassade si vous avez des questions.",
-    image: "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=400&h=300&fit=crop",
-    status: "approved",
-    countryId: 1,
-    countryName: "Canada",
-    rating: 4,
-    createdAt: "2024-11-15T10:30:00Z",
-    approvedAt: "2024-11-15T14:20:00Z",
-    tags: ["visa", "canada", "expérience", "conseils"],
-    likes: 24,
-    dislikes: 2,
-    comments: 8,
-    views: 156
-  },
-  {
-    id: 2,
-    userId: 2,
-    userName: "Marie Martin",
-    userAvatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    title: "Voyage au Japon - Conseils pratiques et bons plans",
-    content: "Le Japon est un pays absolument fascinant ! Après 2 semaines sur place, voici mes conseils pour bien préparer votre voyage : 1) Réservez le JR Pass avant de partir, 2) Apprenez quelques mots de japonais de base, 3) Téléchargez Google Translate avec la fonction caméra, 4) Ayez toujours du cash sur vous, 5) Respectez les règles de politesse locales. Les temples de Kyoto sont à couper le souffle, et la nourriture... un délice à chaque repas !",
-    image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=300&fit=crop",
-    status: "approved",
-    countryId: 3,
-    countryName: "Japon",
-    rating: 5,
-    createdAt: "2024-11-14T08:15:00Z",
-    approvedAt: "2024-11-14T16:45:00Z",
-    tags: ["japon", "voyage", "conseils", "culture"],
-    likes: 42,
-    dislikes: 1,
-    comments: 15,
-    views: 289
-  },
-  {
-    id: 3,
-    userId: 3,
-    userName: "Pierre Durand",
-    userAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    title: "Demande de visa USA - Quelques difficultés rencontrées",
-    content: "Bonjour la communauté ! Je partage mon expérience avec la demande de visa pour les États-Unis. J'ai soumis ma demande il y a 3 semaines et j'ai eu quelques complications. Ils m'ont demandé des documents supplémentaires que je n'avais pas anticipés. Mon conseil : préparez vraiment TOUS les documents possibles, même ceux qui semblent optionnels. L'entretien à l'ambassade s'est bien passé, maintenant j'attends la réponse finale. Je vous tiens au courant !",
-    image: "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=300&fit=crop",
-    status: "approved",
-    countryId: 4,
-    countryName: "États-Unis",
-    rating: 3,
-    createdAt: "2024-11-20T14:22:00Z",
-    approvedAt: "2024-11-20T18:30:00Z",
-    tags: ["usa", "visa", "difficultés", "conseils"],
-    likes: 18,
-    dislikes: 3,
-    comments: 12,
-    views: 134
-  }
-];
+import { communityService, type CommunityPost } from '@/lib/services/communityService';
+import { countryService, type Country } from '@/lib/services/countryService';
 
 export default function CommunityPage() {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>(initialPosts);
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<CommunityPost[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [newPost, setNewPost] = useState({
     title: '',
     content: '',
@@ -140,21 +57,29 @@ export default function CommunityPage() {
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    // Charger les posts depuis localStorage
-    const savedPosts = localStorage.getItem('communityPosts');
-    if (savedPosts) {
-      const parsedPosts = JSON.parse(savedPosts);
-      setPosts(parsedPosts);
-      setFilteredPosts(parsedPosts.filter((post: Post) => post.status === 'approved'));
-    } else {
-      // Sauvegarder les posts initiaux
-      localStorage.setItem('communityPosts', JSON.stringify(initialPosts));
-      setFilteredPosts(initialPosts);
-    }
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const [postsData, countriesData] = await Promise.all([
+          communityService.getPosts(),
+          countryService.getAll()
+        ]);
+        
+        setPosts(postsData);
+        setCountries(countriesData);
+        setFilteredPosts(postsData);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   useEffect(() => {
-    let filtered = posts.filter(post => post.status === 'approved');
+    let filtered = posts;
 
     // Filtrer par recherche
     if (searchQuery) {
@@ -189,100 +114,109 @@ export default function CommunityPage() {
     setFilteredPosts(filtered);
   }, [posts, searchQuery, selectedCountry, sortBy]);
 
-  const handleCreatePost = () => {
+  const handleCreatePost = async () => {
     if (!newPost.title.trim() || !newPost.content.trim()) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    const post: Post = {
-      id: Date.now(),
-      userId: user?.id || 0,
-      userName: user?.name || 'Utilisateur',
-      userAvatar: user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      title: newPost.title,
-      content: newPost.content,
-      image: newPost.image || undefined,
-      status: 'pending',
-      countryId: newPost.countryId ? parseInt(newPost.countryId) : undefined,
-      countryName: newPost.countryId ? countries.find(c => c.id === parseInt(newPost.countryId))?.name : undefined,
-      rating: newPost.rating,
-      createdAt: new Date().toISOString(),
-      tags: newPost.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      likes: 0,
-      dislikes: 0,
-      comments: 0,
-      views: 0
-    };
+    try {
+      const country = countries.find(c => c.id === parseInt(newPost.countryId));
+      
+      const postData = {
+        userId: user?.id || 0,
+        userName: user?.name || 'Utilisateur',
+        userAvatar: user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        title: newPost.title,
+        content: newPost.content,
+        image: newPost.image || undefined,
+        countryId: newPost.countryId ? parseInt(newPost.countryId) : undefined,
+        countryName: country?.name,
+        rating: newPost.rating,
+        tags: newPost.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+      };
 
-    const updatedPosts = [...posts, post];
-    setPosts(updatedPosts);
-    localStorage.setItem('communityPosts', JSON.stringify(updatedPosts));
-
-    setNewPost({
-      title: '',
-      content: '',
-      countryId: '',
-      rating: 5,
-      tags: '',
-      image: ''
-    });
-    setIsCreateModalOpen(false);
-    toast.success('Votre post a été soumis et est en attente de validation');
+      const createdPost = await communityService.createPost(postData);
+      
+      if (createdPost) {
+        setPosts(prev => [createdPost, ...prev]);
+        setNewPost({
+          title: '',
+          content: '',
+          countryId: '',
+          rating: 5,
+          tags: '',
+          image: ''
+        });
+        setIsCreateModalOpen(false);
+        toast.success('Votre post a été soumis et est en attente de validation');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la création du post:', error);
+      toast.error('Erreur lors de la création du post');
+    }
   };
 
-  const handleLike = (postId: number) => {
+  const handleLike = async (postId: number) => {
     if (!isAuthenticated) {
       toast.error('Connectez-vous pour interagir avec les posts');
       return;
     }
 
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        if (post.userLiked) {
-          return { ...post, likes: post.likes - 1, userLiked: false };
-        } else {
-          return { 
-            ...post, 
-            likes: post.likes + 1, 
-            dislikes: post.userDisliked ? post.dislikes - 1 : post.dislikes,
-            userLiked: true, 
-            userDisliked: false 
-          };
-        }
-      }
-      return post;
-    });
+    try {
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
 
-    setPosts(updatedPosts);
-    localStorage.setItem('communityPosts', JSON.stringify(updatedPosts));
+      const newLikes = post.userLiked ? post.likes - 1 : post.likes + 1;
+      const newDislikes = post.userDisliked ? post.dislikes - 1 : post.dislikes;
+
+      const updatedPost = await communityService.updateLikes(postId, newLikes, newDislikes);
+      
+      if (updatedPost) {
+        setPosts(prev => prev.map(p => 
+          p.id === postId 
+            ? { 
+                ...updatedPost, 
+                userLiked: !post.userLiked, 
+                userDisliked: false 
+              }
+            : p
+        ));
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des likes:', error);
+    }
   };
 
-  const handleDislike = (postId: number) => {
+  const handleDislike = async (postId: number) => {
     if (!isAuthenticated) {
       toast.error('Connectez-vous pour interagir avec les posts');
       return;
     }
 
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        if (post.userDisliked) {
-          return { ...post, dislikes: post.dislikes - 1, userDisliked: false };
-        } else {
-          return { 
-            ...post, 
-            dislikes: post.dislikes + 1,
-            likes: post.userLiked ? post.likes - 1 : post.likes,
-            userDisliked: true, 
-            userLiked: false 
-          };
-        }
-      }
-      return post;
-    });
+    try {
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
 
-    setPosts(updatedPosts);
-    localStorage.setItem('communityPosts', JSON.stringify(updatedPosts));
+      const newDislikes = post.userDisliked ? post.dislikes - 1 : post.dislikes + 1;
+      const newLikes = post.userLiked ? post.likes - 1 : post.likes;
+
+      const updatedPost = await communityService.updateLikes(postId, newLikes, newDislikes);
+      
+      if (updatedPost) {
+        setPosts(prev => prev.map(p => 
+          p.id === postId 
+            ? { 
+                ...updatedPost, 
+                userDisliked: !post.userDisliked, 
+                userLiked: false 
+              }
+            : p
+        ));
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des dislikes:', error);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -619,7 +553,37 @@ export default function CommunityPage() {
           )}
 
           <AnimatePresence mode="wait">
-            {filteredPosts.length > 0 ? (
+            {isLoading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+              >
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <motion.div 
+                    key={index} 
+                    className="animate-pulse"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="h-80 glass-effect">
+                      <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-t-lg"></div>
+                      <CardContent className="p-6">
+                        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded mb-2"></div>
+                        <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded mb-4 w-2/3"></div>
+                        <div className="space-y-2">
+                          <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded w-1/2"></div>
+                          <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded w-1/3"></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : filteredPosts.length > 0 ? (
               <motion.div
                 key="posts"
                 initial={{ opacity: 0 }}
@@ -636,7 +600,7 @@ export default function CommunityPage() {
                     whileHover={{ 
                       y: -10, 
                       rotateY: 5,
-                      scale: 1.02,
+                      scale: 1.01,
                       boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)'
                     }}
                     className="preserve-3d"

@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ChatBot } from '@/components/chatbot/ChatBot';
+import { ConnectionStatus } from '@/components/ui/connection-status';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -39,6 +40,7 @@ export default function RootLayout({
           <Footer />
         </div>
         <ChatBot />
+        <ConnectionStatus />
         <Toaster 
           position="bottom-right" 
           toastOptions={{

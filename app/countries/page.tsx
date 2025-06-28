@@ -11,9 +11,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import countries from '@/data/countries.json';
 import { useAuth } from '@/hooks/use-auth';
 import { formatCurrency } from '@/lib/currency';
+import { countryService, type Country } from '@/lib/services/countryService';
 
 const continents = ['Tous', 'Europe', 'Amérique du Nord', 'Asie', 'Océanie', 'Afrique', 'Amérique du Sud'];
 const sortOptions = [
@@ -24,14 +24,32 @@ const sortOptions = [
 ];
 
 function CountriesPageContent() {
-  const [filteredCountries, setFilteredCountries] = useState(countries);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [filteredCountries, setFilteredCountries] = useState<Country[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContinent, setSelectedContinent] = useState('Tous');
   const [sortBy, setSortBy] = useState('name');
   const [visaFilter, setVisaFilter] = useState('all');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        setIsLoading(true);
+        const countriesData = await countryService.getAll();
+        setCountries(countriesData);
+        setFilteredCountries(countriesData);
+      } catch (error) {
+        console.error('Erreur lors du chargement des pays:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCountries();
+  }, []);
 
   useEffect(() => {
     const search = searchParams.get('search');
@@ -41,8 +59,6 @@ function CountriesPageContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    setIsLoading(true);
-    
     let filtered = countries.filter(country => {
       const matchesSearch = country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            country.continent.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -71,11 +87,8 @@ function CountriesPageContent() {
       }
     });
 
-    setTimeout(() => {
-      setFilteredCountries(filtered);
-      setIsLoading(false);
-    }, 300);
-  }, [searchQuery, selectedContinent, sortBy, visaFilter]);
+    setFilteredCountries(filtered);
+  }, [countries, searchQuery, selectedContinent, sortBy, visaFilter]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

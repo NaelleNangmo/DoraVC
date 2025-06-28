@@ -1,0 +1,370 @@
+# DORA - Digital Online Resource for Adventurers
+
+## 📋 Description du Projet
+
+DORA est une plateforme web complète dédiée à la simplification des démarches de visa et à l'accompagnement des voyageurs dans leurs aventures internationales. L'application combine un frontend moderne en Next.js avec un backend robuste en Node.js/PostgreSQL, offrant une expérience utilisateur exceptionnelle avec un système de fallback intelligent.
+
+## 🏗️ Architecture Technique
+
+### Frontend (Next.js 13+)
+- **Framework**: Next.js avec App Router
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Animations**: Framer Motion pour les effets 3D
+- **État**: React Hooks + Context API
+- **TypeScript**: Typage strict pour la robustesse
+- **PWA**: Support hors ligne avec fallback automatique
+
+### Backend (Node.js + PostgreSQL)
+- **Runtime**: Node.js avec modules ES6
+- **Base de données**: PostgreSQL avec pool de connexions
+- **API**: REST avec Express.js
+- **Authentification**: JWT + bcrypt
+- **Sécurité**: Helmet, CORS, Rate Limiting
+- **Initialisation**: Auto-setup de la BD avec données de test
+
+### Système Hybride Intelligent
+- **Connexion automatique**: Détection du backend disponible
+- **Fallback transparent**: Basculement vers les données locales
+- **Synchronisation**: Mise à jour automatique quand le backend revient
+- **Indicateur visuel**: Statut de connexion en temps réel
+
+## 🎨 Design et UX
+
+### Philosophie de Design
+- **Apple-level aesthetics**: Attention méticuleuse aux détails
+- **Glassmorphism**: Effets de verre et transparence
+- **Animations 3D**: Transformations et rotations fluides
+- **Micro-interactions**: Feedback visuel sur chaque action
+- **Responsive**: Adaptation parfaite mobile/desktop
+
+### Thèmes
+- **Mode clair**: Gradients doux, couleurs vives
+- **Mode sombre**: Contrastes élégants, tons profonds
+- **Transition fluide**: Basculement animé entre thèmes
+- **Persistance**: Sauvegarde des préférences utilisateur
+
+### Couleurs Principales
+- **Primaire**: Gradient bleu-violet (#3B82F6 → #8B5CF6)
+- **Secondaire**: Gradient violet-rose (#8B5CF6 → #EC4899)
+- **Accent**: Gradient cyan-bleu (#06B6D4 → #3B82F6)
+- **Succès**: Vert émeraude (#10B981)
+- **Erreur**: Rouge corail (#EF4444)
+
+## 🚀 Fonctionnalités Principales
+
+### 1. Gestion des Utilisateurs
+- **Authentification**: Login/Register avec validation
+- **Profils**: Avatars, préférences, historique
+- **Rôles**: Utilisateur standard et administrateur
+- **Sécurité**: Hachage des mots de passe, sessions JWT
+
+### 2. Catalogue des Pays
+- **180+ destinations**: Informations complètes
+- **Filtres avancés**: Continent, visa, coût, délai
+- **Recherche intelligente**: Pays, villes, continents
+- **Tri dynamique**: Popularité, coût, délai
+- **Fiches détaillées**: Visa, hébergements, restaurants, sites
+
+### 3. Simulateur de Visa Intelligent
+- **Sélection origine/destination**: Interface intuitive
+- **Logique des accords**: Exemptions automatiques
+- **Estimation coûts/délais**: Calculs en temps réel
+- **Recommandations**: Suggestions personnalisées
+
+### 4. Processus de Visa Guidé
+- **5 étapes structurées**: Recherche → Documents → Formulaire → Soumission → Suivi
+- **Progression visuelle**: Barre de progression animée
+- **Sauvegarde automatique**: Reprise où on s'est arrêté
+- **Assistant IA**: Aide contextuelle à chaque étape
+- **Documents**: Upload et gestion des fichiers
+
+### 5. Communauté Active
+- **Partage d'expériences**: Posts avec images et notes
+- **Système de votes**: Likes/dislikes avec animations
+- **Modération**: Approbation des posts par les admins
+- **Filtres**: Par pays, popularité, date, note
+- **Tags**: Catégorisation et recherche
+
+### 6. Assistant IA (ChatBot)
+- **IA spécialisée**: Expert en voyages et visas
+- **Interface moderne**: Bulles animées, typing indicators
+- **Historique**: Sauvegarde des conversations
+- **Fallback intelligent**: Réponses pré-définies si API indisponible
+- **Multilingue**: Support français, anglais, espagnol
+
+### 7. Panel d'Administration
+- **Dashboard complet**: Statistiques en temps réel
+- **Gestion des posts**: Modération avec aperçu
+- **Gestion des utilisateurs**: Profils et permissions
+- **Gestion des pays**: CRUD complet avec validation
+- **Analytics**: Métriques d'utilisation et engagement
+
+## 🛠️ Technologies et Dépendances
+
+### Frontend Core
+```json
+{
+  "next": "13.5.1",
+  "react": "18.2.0",
+  "typescript": "5.2.2",
+  "tailwindcss": "3.3.3",
+  "framer-motion": "^10.16.0"
+}
+```
+
+### UI Components
+```json
+{
+  "@radix-ui/*": "Composants accessibles",
+  "lucide-react": "Icônes modernes",
+  "sonner": "Notifications toast",
+  "class-variance-authority": "Variants CSS"
+}
+```
+
+### Backend Core
+```json
+{
+  "express": "^4.18.2",
+  "pg": "^8.11.3",
+  "bcryptjs": "^2.4.3",
+  "jsonwebtoken": "^9.0.2",
+  "helmet": "^7.1.0",
+  "cors": "^2.8.5"
+}
+```
+
+## 📁 Structure du Projet
+
+```
+dora-travel-app/
+├── app/                          # Pages Next.js App Router
+│   ├── page.tsx                  # Accueil avec simulateur
+│   ├── countries/                # Catalogue des pays
+│   │   ├── page.tsx             # Liste des pays
+│   │   └── [code]/page.tsx      # Détail d'un pays
+│   ├── community/page.tsx        # Communauté
+│   ├── visa-steps/page.tsx       # Processus de visa
+│   ├── admin/page.tsx            # Panel d'administration
+│   ├── layout.tsx               # Layout principal
+│   └── globals.css              # Styles globaux
+├── components/                   # Composants réutilisables
+│   ├── ui/                      # Composants UI de base
+│   ├── layout/                  # Header, Footer
+│   ├── auth/                    # Authentification
+│   ├── chatbot/                 # Assistant IA
+│   └── visa/                    # Composants visa
+├── lib/                         # Utilitaires et services
+│   ├── api.ts                   # Client API avec fallback
+│   ├── services/                # Services métier
+│   ├── auth.ts                  # Authentification
+│   ├── currency.ts              # Conversion de devises
+│   └── utils.ts                 # Utilitaires généraux
+├── hooks/                       # Hooks React personnalisés
+├── data/                        # Données statiques JSON
+├── server/                      # Backend Node.js
+│   ├── index.js                 # Serveur principal
+│   ├── config/database.js       # Configuration PostgreSQL
+│   ├── models/                  # Modèles de données
+│   ├── routes/                  # Routes API
+│   ├── middleware/              # Middlewares
+│   └── scripts/initDatabase.js  # Initialisation BD
+└── .naelle                      # Ce fichier de documentation
+```
+
+## 🔧 Configuration et Déploiement
+
+### Variables d'Environnement
+
+#### Frontend (.env.local)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+```
+
+#### Backend (.env)
+```env
+DATABASE_URL=postgresql://postgres:iFKabBloZvqROECyXUdxkPPulbMvXzdu@switchyard.proxy.rlwy.net:27311/railway
+JWT_SECRET=your-super-secret-jwt-key-here
+NODE_ENV=development
+PORT=3001
+```
+
+### Installation et Démarrage
+
+#### Frontend
+```bash
+npm install
+npm run dev          # Développement
+npm run build        # Production
+npm start           # Serveur de production
+```
+
+#### Backend
+```bash
+cd server
+npm install
+npm start           # Démarrage avec auto-init BD
+npm run dev         # Développement avec watch
+```
+
+### Base de Données
+- **Auto-initialisation**: Le serveur crée automatiquement toutes les tables
+- **Données de test**: 5 enregistrements par table
+- **Comptes par défaut**:
+  - Admin: `admin@dora.travel` / `admin123`
+  - User: `jean@example.com` / `password123`
+
+## 🔒 Sécurité
+
+### Authentification
+- **JWT**: Tokens sécurisés avec expiration
+- **bcrypt**: Hachage des mots de passe (salt rounds: 10)
+- **Validation**: Vérification des entrées côté client et serveur
+- **Sessions**: Gestion automatique des tokens
+
+### Protection API
+- **Helmet**: Protection des en-têtes HTTP
+- **CORS**: Configuration stricte des origines
+- **Rate Limiting**: 100 requêtes/15min par IP
+- **Validation**: Sanitisation des données d'entrée
+
+### Données
+- **Chiffrement**: Mots de passe hachés
+- **Validation**: Schémas stricts côté serveur
+- **Sanitisation**: Protection contre les injections
+- **Backup**: Sauvegarde locale en fallback
+
+## 🌐 Internationalisation
+
+### Langues Supportées
+- **Français** (par défaut)
+- **Anglais**
+- **Espagnol**
+
+### Devises Supportées
+- **EUR** (Euro)
+- **USD** (Dollar américain)
+- **XAF** (Franc CFA)
+- **CAD** (Dollar canadien)
+- **GBP** (Livre sterling)
+- **JPY** (Yen japonais)
+- **AUD** (Dollar australien)
+
+### Conversion Automatique
+- **Taux de change**: Intégrés dans l'application
+- **Formatage**: Adaptation selon la devise
+- **Persistance**: Sauvegarde des préférences
+
+## 📊 Performance et Optimisation
+
+### Frontend
+- **Code Splitting**: Chargement à la demande
+- **Image Optimization**: Next.js Image component
+- **Caching**: Stratégies de cache intelligentes
+- **Bundle Size**: Optimisation des imports
+
+### Backend
+- **Connection Pooling**: Pool PostgreSQL optimisé
+- **Indexation**: Index sur les colonnes critiques
+- **Compression**: Gzip pour les réponses
+- **Monitoring**: Logs détaillés et métriques
+
+### Base de Données
+- **Index**: Sur email, code pays, statut posts
+- **Relations**: Foreign keys avec CASCADE
+- **Transactions**: Opérations atomiques
+- **Backup**: Stratégie de sauvegarde
+
+## 🧪 Tests et Qualité
+
+### Validation
+- **TypeScript**: Typage strict
+- **ESLint**: Règles de qualité de code
+- **Validation**: Schémas de données
+- **Error Handling**: Gestion complète des erreurs
+
+### Monitoring
+- **Health Check**: Endpoint de santé
+- **Logs**: Système de logging complet
+- **Métriques**: Suivi des performances
+- **Alertes**: Notifications d'erreurs
+
+## 🚀 Fonctionnalités Avancées
+
+### Système Hybride
+- **Détection automatique**: Vérification backend toutes les 30s
+- **Fallback transparent**: Basculement invisible pour l'utilisateur
+- **Synchronisation**: Mise à jour automatique des données
+- **Indicateur**: Badge de statut de connexion
+
+### Animations 3D
+- **Preserve-3d**: Transformations 3D réelles
+- **Glassmorphism**: Effets de verre et flou
+- **Micro-interactions**: Feedback sur chaque action
+- **Performance**: Optimisées avec Framer Motion
+
+### Assistant IA
+- **API OpenRouter**: Modèle WizardLM-2-8x22B
+- **Spécialisation**: Expert en voyages et visas
+- **Fallback**: Réponses intelligentes hors ligne
+- **Historique**: Sauvegarde des conversations
+
+## 📈 Métriques et Analytics
+
+### Statistiques Disponibles
+- **Utilisateurs**: Total, nouveaux, actifs
+- **Posts**: Total, approuvés, en attente
+- **Pays**: Popularité, demandes de visa
+- **Engagement**: Likes, commentaires, vues
+
+### Tableaux de Bord
+- **Admin**: Vue d'ensemble complète
+- **Utilisateur**: Progression personnelle
+- **Communauté**: Statistiques publiques
+- **Performance**: Métriques techniques
+
+## 🔮 Roadmap et Évolutions
+
+### Fonctionnalités Prévues
+- **Notifications push**: Alertes en temps réel
+- **Chat en direct**: Communication entre utilisateurs
+- **Géolocalisation**: Détection automatique du pays
+- **Offline-first**: Mode hors ligne complet
+- **Mobile app**: Application native React Native
+
+### Améliorations Techniques
+- **GraphQL**: Migration vers GraphQL
+- **Microservices**: Architecture distribuée
+- **CDN**: Distribution de contenu global
+- **AI/ML**: Recommandations personnalisées
+
+## 👥 Équipe et Contribution
+
+### Rôles
+- **Product Owner**: Vision et stratégie
+- **Tech Lead**: Architecture et développement
+- **UI/UX Designer**: Design et expérience utilisateur
+- **DevOps**: Infrastructure et déploiement
+
+### Standards de Code
+- **Commits**: Convention Conventional Commits
+- **Branches**: GitFlow avec feature branches
+- **Reviews**: Code review obligatoire
+- **Documentation**: Inline et externe
+
+## 📞 Support et Maintenance
+
+### Contacts
+- **Email**: contact@dora.travel
+- **Support**: support@dora.travel
+- **Urgences**: urgent@dora.travel
+
+### Maintenance
+- **Mises à jour**: Déploiement continu
+- **Monitoring**: 24/7 avec alertes
+- **Backup**: Quotidien avec rétention 30 jours
+- **Sécurité**: Audits réguliers et patches
+
+---
+
+**DORA** - Votre compagnon digital pour explorer le monde en toute sérénité 🌍✈️
