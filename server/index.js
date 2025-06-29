@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import path from 'path';
 import pool from './config/database.js';
 import initDatabase from './scripts/initDatabase.js';
 
@@ -10,6 +11,7 @@ import initDatabase from './scripts/initDatabase.js';
 import authRoutes from './routes/auth.js';
 import countriesRoutes from './routes/countries.js';
 import communityRoutes from './routes/community.js';
+import documentsRoutes from './routes/documents.js';
 
 dotenv.config();
 
@@ -52,10 +54,14 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Servir les fichiers statiques (documents uploadés)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // Routes API
 app.use('/api/auth', authRoutes);
 app.use('/api/countries', countriesRoutes);
 app.use('/api/community', communityRoutes);
+app.use('/api/documents', documentsRoutes);
 
 // Route de santé
 app.get('/api/health', async (req, res) => {
@@ -104,6 +110,7 @@ app.get('/api', (req, res) => {
       auth: '/api/auth',
       countries: '/api/countries',
       community: '/api/community',
+      documents: '/api/documents',
       health: '/api/health'
     }
   });
@@ -150,6 +157,8 @@ const startServer = async () => {
       console.log('   - POST /api/auth/register');
       console.log('   - GET  /api/countries');
       console.log('   - GET  /api/community');
+      console.log('   - POST /api/documents/upload');
+      console.log('   - GET  /api/documents/list');
       console.log('   - POST /api/init-database');
     });
   } catch (error) {

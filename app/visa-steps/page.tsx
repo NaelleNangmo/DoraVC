@@ -83,15 +83,10 @@ function VisaStepsContent() {
       address: ''
     }
   });
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      window.location.href = '/countries';
-      return;
-    }
-
     const countryCode = searchParams.get('country');
     if (countryCode) {
       const country = countries.find(c => c.code === countryCode);
@@ -109,7 +104,43 @@ function VisaStepsContent() {
       setFormData(progress.formData || formData);
       setDocuments(progress.documents || []);
     }
-  }, [isAuthenticated, searchParams]);
+  }, [searchParams]);
+
+  // Vérification d'accès sans redirection automatique
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          className="h-32 w-32 border-4 border-blue-600 border-t-transparent rounded-full"
+        />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl"
+        >
+          <Shield className="h-16 w-16 text-blue-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Connexion requise
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Vous devez être connecté pour accéder aux démarches de visa.
+          </p>
+          <Button asChild>
+            <a href="/countries">Retour aux destinations</a>
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
 
   const saveProgress = () => {
     const progress = {
@@ -189,10 +220,6 @@ function VisaStepsContent() {
     }));
     saveProgress();
   };
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   const currentStepData = steps.find(step => step.id === currentStep);
 

@@ -34,6 +34,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
+import { PostDetailModal } from '@/components/community/PostDetailModal';
 import { communityService, type CommunityPost } from '@/lib/services/communityService';
 import { countryService, type Country } from '@/lib/services/countryService';
 
@@ -45,6 +46,8 @@ export default function CommunityPage() {
   const [selectedCountry, setSelectedCountry] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
+  const [isPostDetailOpen, setIsPostDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [newPost, setNewPost] = useState({
     title: '',
@@ -123,13 +126,16 @@ export default function CommunityPage() {
     try {
       const country = countries.find(c => c.id === parseInt(newPost.countryId));
       
+      // Si aucune image n'est fournie, utiliser l'image du pays
+      const postImage = newPost.image.trim() || country?.image || '';
+      
       const postData = {
         userId: user?.id || 0,
         userName: user?.name || 'Utilisateur',
-        userAvatar: user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        userAvatar: user?.avatar || '',
         title: newPost.title,
         content: newPost.content,
-        image: newPost.image || undefined,
+        image: postImage,
         countryId: newPost.countryId ? parseInt(newPost.countryId) : undefined,
         countryName: country?.name,
         rating: newPost.rating,
@@ -217,6 +223,11 @@ export default function CommunityPage() {
     } catch (error) {
       console.error('Erreur lors de la mise à jour des dislikes:', error);
     }
+  };
+
+  const handlePostClick = (post: CommunityPost) => {
+    setSelectedPost(post);
+    setIsPostDetailOpen(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -415,9 +426,12 @@ export default function CommunityPage() {
                         id="image"
                         value={newPost.image}
                         onChange={(e) => setNewPost({ ...newPost, image: e.target.value })}
-                        placeholder="https://..."
+                        placeholder="https://... (laissez vide pour utiliser l'image du pays)"
                         className="glass-effect border-border/50"
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Si aucune image n'est fournie, l'image du pays sélectionné sera utilisée automatiquement.
+                      </p>
                     </motion.div>
 
                     <motion.div
@@ -603,7 +617,8 @@ export default function CommunityPage() {
                       scale: 1.01,
                       boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)'
                     }}
-                    className="preserve-3d"
+                    className="preserve-3d cursor-pointer"
+                    onClick={() => handlePostClick(post)}
                   >
                     <Card className="h-full glass-effect border-0 shadow-xl hover:shadow-2xl transition-all duration-500">
                       {post.image && (
@@ -697,7 +712,10 @@ export default function CommunityPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
                             <motion.button
-                              onClick={() => handleLike(post.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleLike(post.id);
+                              }}
                               className={`flex items-center space-x-1 text-sm transition-colors ${
                                 post.userLiked ? 'text-red-600' : 'text-muted-foreground hover:text-red-600'
                               }`}
@@ -709,7 +727,10 @@ export default function CommunityPage() {
                             </motion.button>
                             
                             <motion.button
-                              onClick={() => handleDislike(post.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDislike(post.id);
+                              }}
                               className={`flex items-center space-x-1 text-sm transition-colors ${
                                 post.userDisliked ? 'text-blue-600' : 'text-muted-foreground hover:text-blue-600'
                               }`}
@@ -734,6 +755,7 @@ export default function CommunityPage() {
                           <motion.div
                             whileHover={{ scale: 1.1, rotate: 10 }}
                             whileTap={{ scale: 0.9 }}
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <Button variant="ghost" size="sm" className="glass-effect">
                               <Share2 className="h-4 w-4" />
@@ -785,6 +807,15 @@ export default function CommunityPage() {
           </AnimatePresence>
         </div>
       </section>
+
+      {/* Post Detail Modal */}
+      <PostDetailModal
+        post={selectedPost}
+        isOpen={isPostDetailOpen}
+        onClose={() => setIsPostDetailOpen(false)}
+        onLike={handleLike}
+        onDislike={handleDislike}
+      />
     </div>
   );
 }

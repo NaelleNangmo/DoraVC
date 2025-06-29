@@ -99,14 +99,9 @@ export default function AdminPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [isEditCountryModalOpen, setIsEditCountryModalOpen] = useState(false);
   const [editingCountry, setEditingCountry] = useState<Country | null>(null);
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
 
   useEffect(() => {
-    if (!isAdmin) {
-      window.location.href = '/';
-      return;
-    }
-
     // Charger les données
     const savedPosts = localStorage.getItem('communityPosts');
     if (savedPosts) {
@@ -139,7 +134,43 @@ export default function AdminPage() {
       setUsers(defaultUsers);
       localStorage.setItem('users', JSON.stringify(defaultUsers));
     }
-  }, [isAdmin]);
+  }, []);
+
+  // Vérification d'accès admin sans redirection automatique
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          className="h-32 w-32 border-4 border-blue-600 border-t-transparent rounded-full"
+        />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl"
+        >
+          <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Accès refusé
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Vous devez être administrateur pour accéder à cette page.
+          </p>
+          <Button asChild>
+            <a href="/">Retour à l'accueil</a>
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
 
   const handleApprovePost = (postId: number) => {
     const updatedPosts = posts.map(post => 
@@ -211,10 +242,6 @@ export default function AdminPage() {
     totalCountries: adminCountries.length,
     totalViews: posts.reduce((sum, post) => sum + post.views, 0)
   };
-
-  if (!isAdmin) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
