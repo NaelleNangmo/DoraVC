@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, Globe, Shield, Users, Star, MapPin, Clock, CreditCard, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Globe, Shield, Users, Star, MapPin, Clock, CreditCard, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,14 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
 import { CountrySelector } from '@/components/visa/CountrySelector';
 import countries from '@/data/countries.json';
-
-const heroImages = [
-  'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&h=600&fit=crop'
-];
 
 const testimonials = [
   {
@@ -47,33 +38,24 @@ const testimonials = [
     rating: 5,
     text: "Excellent service ! L'assistant IA m'a guidée pas à pas dans mes démarches.",
     destination: "États-Unis"
-  },
-  {
-    id: 4,
-    name: "Pierre Ndong",
-    country: "Gabon",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    rating: 5,
-    text: "Application indispensable pour les voyageurs. Les recommandations d'hôtels sont parfaites !",
-    destination: "Royaume-Uni"
   }
 ];
 
 const features = [
   {
-    icon: <Shield className="h-8 w-8" />,
+    icon: <Shield className="h-6 w-6" />,
     title: "Accompagnement Complet",
     description: "Guide étape par étape pour vos démarches de visa",
     image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&h=300&fit=crop"
   },
   {
-    icon: <Globe className="h-8 w-8" />,
+    icon: <Globe className="h-6 w-6" />,
     title: "180+ Destinations",
     description: "Informations détaillées sur tous les pays",
     image: "https://images.unsplash.com/photo-1502602898536-47ad22581b52?w=400&h=300&fit=crop"
   },
   {
-    icon: <Users className="h-8 w-8" />,
+    icon: <Users className="h-6 w-6" />,
     title: "Communauté Active",
     description: "Partagez vos expériences avec d'autres voyageurs",
     image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=300&fit=crop"
@@ -81,14 +63,13 @@ const features = [
 ];
 
 const stats = [
-  { number: "25,000+", label: "Visas traités", icon: <Shield className="h-6 w-6" /> },
-  { number: "180+", label: "Destinations", icon: <Globe className="h-6 w-6" /> },
-  { number: "98%", label: "Taux de succès", icon: <Star className="h-6 w-6" /> },
-  { number: "24/7", label: "Support IA", icon: <Clock className="h-6 w-6" /> }
+  { number: "25,000+", label: "Visas traités", icon: <Shield className="h-5 w-5" /> },
+  { number: "180+", label: "Destinations", icon: <Globe className="h-5 w-5" /> },
+  { number: "98%", label: "Taux de succès", icon: <Star className="h-5 w-5" /> },
+  { number: "24/7", label: "Support IA", icon: <Clock className="h-5 w-5" /> }
 ];
 
 export default function HomePage() {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrigin, setSelectedOrigin] = useState<any>(null);
   const [selectedDestination, setSelectedDestination] = useState<any>(null);
@@ -101,14 +82,7 @@ export default function HomePage() {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    // Détecter automatiquement le pays d'origine basé sur la localisation (simulation)
+    // Détecter automatiquement le pays d'origine
     try {
       const userLocale = navigator.language || 'fr-FR';
       const countryCode = userLocale.split('-')[1];
@@ -135,14 +109,6 @@ export default function HomePage() {
     }
   }, [selectedDestination]);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length);
-  };
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -153,15 +119,13 @@ export default function HomePage() {
   const getVisaRequirements = () => {
     if (!selectedOrigin || !selectedDestination) return null;
     
-    // Logique simplifiée pour déterminer les exigences de visa
     if (selectedOrigin.id === selectedDestination.id) {
       return { required: false, message: "Voyage domestique - aucun visa requis" };
     }
     
-    // Exemples de logique basée sur les accords bilatéraux
     const exemptCountries = {
-      'FR': ['SN', 'ML', 'CI', 'BF', 'MA', 'TN'], // France exempt pour certains pays africains
-      'SN': ['ML', 'CI', 'BF', 'FR'], // Sénégal exempt pour CEDEAO + France
+      'FR': ['SN', 'ML', 'CI', 'BF', 'MA', 'TN'],
+      'SN': ['ML', 'CI', 'BF', 'FR'],
       'ML': ['SN', 'CI', 'BF', 'FR'],
       'CI': ['SN', 'ML', 'BF', 'FR'],
       'BF': ['SN', 'ML', 'CI', 'FR']
@@ -183,664 +147,274 @@ export default function HomePage() {
   const visaRequirements = getVisaRequirements();
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section with 3D effects */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden perspective-1000">
-        {/* Background Carousel */}
-        <div className="absolute inset-0">
-          {heroImages.map((image, index) => (
-            <motion.div
-              key={index}
-              className="absolute inset-0"
-              initial={{ opacity: 0, scale: 1.1, rotateY: 10 }}
-              animate={{ 
-                opacity: index === currentSlide ? 1 : 0,
-                scale: index === currentSlide ? 1 : 1.1,
-                rotateY: index === currentSlide ? 0 : 10
-              }}
-              transition={{ duration: 1, ease: 'easeInOut' }}
-            >
-              <div
-                className="w-full h-full bg-cover bg-center"
-                style={{ backgroundImage: `url(${image})` }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60" />
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Floating particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-white/20 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, -100, 0],
-                opacity: [0, 1, 0],
-              }}
-              transition={{
-                duration: 3 + Math.random() * 2,
-                repeat: Infinity,
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Navigation Arrows */}
-        <motion.div
-          whileHover={{ scale: 1.1, x: -5 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-10 glass-effect"
-            onClick={prevSlide}
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </Button>
-        </motion.div>
-        
-        <motion.div
-          whileHover={{ scale: 1.1, x: 5 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-10 glass-effect"
-            onClick={nextSlide}
-          >
-            <ChevronRight className="h-6 w-6" />
-          </Button>
-        </motion.div>
-
-        {/* Slide Indicators */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
-          {heroImages.map((_, index) => (
-            <motion.button
-              key={index}
-              className={`w-3 h-3 rounded-full transition-all ${
-                index === currentSlide ? 'bg-white' : 'bg-white/50'
-              }`}
-              onClick={() => setCurrentSlide(index)}
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.8 }}
-            />
-          ))}
-        </div>
-
-        {/* Hero Content */}
-        <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 50, rotateX: 20 }}
-            animate={{ opacity: 1, y: 0, rotateX: 0 }}
-            transition={{ duration: 1, ease: 'easeOut' }}
-            className="preserve-3d"
-          >
-            <motion.h1 
-              className="text-5xl md:text-7xl font-bold mb-6 leading-tight"
-              animate={{ 
-                textShadow: [
-                  '0 0 20px rgba(59, 130, 246, 0.5)',
-                  '0 0 30px rgba(147, 51, 234, 0.8)',
-                  '0 0 20px rgba(59, 130, 246, 0.5)'
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="relative py-20 bg-gradient-to-b from-primary/5 to-background">
+        <div className="container-max section-padding">
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
               Simplifiez vos
-              <motion.span 
-                className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
-                animate={{ 
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-                style={{ backgroundSize: '200% 200%' }}
-              >
-                Démarches de Visa
-              </motion.span>
-            </motion.h1>
+              <span className="block text-primary">Démarches de Visa</span>
+            </h1>
             
-            <motion.p 
-              className="text-xl md:text-2xl mb-8 text-gray-200"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            >
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               DORA vous accompagne pas à pas dans l'obtention de votre visa avec des conseils personnalisés et un suivi complet.
-            </motion.p>
+            </p>
 
-            {/* Search Bar with 3D effect */}
-            <motion.form 
-              onSubmit={handleSearch} 
-              className="max-w-md mx-auto mb-8"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-              whileHover={{ scale: 1.02, rotateX: 5 }}
-            >
-              <div className="relative glass-effect rounded-full p-1">
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="max-w-md mx-auto mb-8">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Rechercher une destination..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-4 py-6 text-lg bg-transparent border-0 text-white placeholder:text-gray-300 focus:ring-2 focus:ring-white/30"
+                  className="pl-10 h-12"
                 />
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
               </div>
-            </motion.form>
+            </form>
 
-            {/* CTA Buttons with 3D effects */}
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.8 }}
-            >
-              <motion.div
-                whileHover={{ 
-                  scale: 1.05, 
-                  rotateY: 5,
-                  boxShadow: '0 20px 40px rgba(59, 130, 246, 0.4)'
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="preserve-3d"
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                asChild
+                size="lg"
+                className="btn-primary h-12 px-8"
               >
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 text-lg shadow-2xl border-0"
-                >
-                  <Link href={isAuthenticated ? "/visa-steps" : "/countries"}>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    {isAuthenticated ? "Continuer ma demande" : "Commencer maintenant"}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              </motion.div>
+                <Link href={isAuthenticated ? "/visa-steps" : "/countries"}>
+                  {isAuthenticated ? "Continuer ma demande" : "Commencer maintenant"}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
               
-              <motion.div
-                whileHover={{ 
-                  scale: 1.05, 
-                  rotateY: -5,
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)'
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="preserve-3d"
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-12 px-8"
               >
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg glass-effect"
-                >
-                  <Link href="/countries">Explorer les destinations</Link>
-                </Button>
-              </motion.div>
-            </motion.div>
-          </motion.div>
+                <Link href="/countries">Explorer les destinations</Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Stats Section with 3D cards */}
-      <section className="py-16 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
-        <div className="container mx-auto px-4">
+      {/* Stats Section */}
+      <section className="section-padding bg-muted/30">
+        <div className="container-max">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50, rotateY: 45 }}
-                whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                whileHover={{ 
-                  scale: 1.05, 
-                  rotateY: 10,
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)'
-                }}
-                className="text-center preserve-3d"
-              >
-                <motion.div 
-                  className="flex justify-center mb-4"
-                  whileHover={{ rotateY: 360 }}
-                  transition={{ duration: 0.8 }}
-                >
-                  <div className="p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full text-white shadow-lg">
+              <div key={index} className="text-center">
+                <div className="flex justify-center mb-3">
+                  <div className="p-3 bg-primary/10 rounded-lg text-primary">
                     {stat.icon}
                   </div>
-                </motion.div>
-                <motion.div 
-                  className="text-3xl font-bold text-gray-900 dark:text-white mb-2"
-                  animate={{ 
-                    textShadow: [
-                      '0 0 0px rgba(59, 130, 246, 0)',
-                      '0 0 10px rgba(59, 130, 246, 0.5)',
-                      '0 0 0px rgba(59, 130, 246, 0)'
-                    ]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
-                >
+                </div>
+                <div className="text-2xl font-bold text-foreground mb-1">
                   {stat.number}
-                </motion.div>
-                <div className="text-gray-600 dark:text-gray-300">{stat.label}</div>
-              </motion.div>
+                </div>
+                <div className="text-sm text-muted-foreground">{stat.label}</div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features Section with enhanced 3D effects */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20" />
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-16">
-            <motion.h2
-              initial={{ opacity: 0, y: 30, rotateX: 20 }}
-              whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-4xl font-bold text-gray-900 dark:text-white mb-6"
-            >
+      {/* Features Section */}
+      <section className="section-padding">
+        <div className="container-max">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
               Pourquoi choisir DORA ?
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
-            >
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Une plateforme complète pour tous vos besoins de voyage
-            </motion.p>
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50, rotateY: 30 }}
-                whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
-                whileHover={{ 
-                  y: -10, 
-                  rotateY: 10,
-                  scale: 1.02,
-                  boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)'
-                }}
-                className="group preserve-3d"
-              >
-                <Card className="h-full overflow-hidden border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                  <div className="relative h-48 overflow-hidden">
-                    <motion.div
-                      className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-                      style={{ backgroundImage: `url(${feature.image})` }}
-                      whileHover={{ rotateX: 5 }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <motion.div 
-                      className="absolute bottom-4 left-4 p-3 bg-white/90 dark:bg-gray-800/90 rounded-lg shadow-lg backdrop-blur-sm"
-                      whileHover={{ 
-                        scale: 1.1, 
-                        rotateY: 15,
-                        boxShadow: '0 10px 25px rgba(59, 130, 246, 0.3)'
-                      }}
-                    >
-                      <div className="text-blue-600">
-                        {feature.icon}
-                      </div>
-                    </motion.div>
+              <div key={index} className="professional-card p-6 subtle-hover">
+                <div className="h-48 bg-cover bg-center rounded-lg mb-4"
+                     style={{ backgroundImage: `url(${feature.image})` }} />
+                <div className="flex items-center mb-3">
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary mr-3">
+                    {feature.icon}
                   </div>
-                  <CardContent className="p-6">
-                    <motion.h3 
-                      className="text-xl font-semibold text-gray-900 dark:text-white mb-3"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      {feature.title}
-                    </motion.h3>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {feature.title}
+                  </h3>
+                </div>
+                <p className="text-muted-foreground">
+                  {feature.description}
+                </p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Enhanced Visa Simulator with Country Selection */}
-      <section className="py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 relative overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-32 h-32 bg-white/5 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.1, 0.3, 0.1],
-                rotate: [0, 180, 360],
-              }}
-              transition={{
-                duration: 8 + Math.random() * 4,
-                repeat: Infinity,
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30, rotateX: 20 }}
-              whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-4xl font-bold text-white mb-6">
+      {/* Visa Simulator */}
+      <section className="section-padding bg-muted/30">
+        <div className="container-max">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-foreground mb-4">
                 Simulateur de Visa Intelligent
               </h2>
-              <p className="text-xl text-blue-100">
+              <p className="text-lg text-muted-foreground">
                 Sélectionnez vos pays d'origine et de destination pour une estimation personnalisée
               </p>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 50, rotateY: 20 }}
-              whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              whileHover={{ 
-                scale: 1.02,
-                rotateY: 5,
-                boxShadow: '0 30px 60px rgba(0, 0, 0, 0.3)'
-              }}
-              className="preserve-3d"
-            >
-              <Card className="p-8 shadow-2xl border-0 glass-effect">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="text-2xl font-semibold mb-6 text-white">
-                      Sélectionnez vos pays
-                    </h3>
-                    <CountrySelector
-                      selectedOrigin={selectedOrigin}
-                      selectedDestination={selectedDestination}
-                      onOriginChange={setSelectedOrigin}
-                      onDestinationChange={setSelectedDestination}
-                    />
-                  </div>
-
-                  <motion.div 
-                    className="bg-gradient-to-br from-blue-700 to-purple-700 rounded-xl p-6 text-white"
-                    whileHover={{ 
-                      scale: 1.02,
-                      rotateY: -5,
-                      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
-                    }}
-                  >
-                    <h3 className="text-2xl font-semibold mb-6">Estimation</h3>
-                    {selectedOrigin && selectedDestination ? (
-                      <motion.div 
-                        className="space-y-4"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <motion.div 
-                          className="flex items-center space-x-3"
-                          whileHover={{ x: 5 }}
-                        >
-                          <MapPin className="h-5 w-5 text-blue-200" />
-                          <span className="text-lg">
-                            {selectedOrigin.name} → {selectedDestination.name}
-                          </span>
-                        </motion.div>
-
-                        {visaRequirements && (
-                          <motion.div 
-                            className="flex items-center space-x-3"
-                            whileHover={{ x: 5 }}
-                          >
-                            <Shield className="h-5 w-5 text-blue-200" />
-                            <span className="text-lg">{visaRequirements.message}</span>
-                          </motion.div>
-                        )}
-
-                        {simulatorData.visaRequired && (
-                          <>
-                            <motion.div 
-                              className="flex items-center space-x-3"
-                              whileHover={{ x: 5 }}
-                            >
-                              <CreditCard className="h-5 w-5 text-blue-200" />
-                              <motion.span 
-                                className="text-2xl font-bold"
-                                animate={{ 
-                                  textShadow: [
-                                    '0 0 10px rgba(255, 255, 255, 0.5)',
-                                    '0 0 20px rgba(255, 255, 255, 0.8)',
-                                    '0 0 10px rgba(255, 255, 255, 0.5)'
-                                  ]
-                                }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                              >
-                                {simulatorData.cost}€
-                              </motion.span>
-                            </motion.div>
-                            <motion.div 
-                              className="flex items-center space-x-3"
-                              whileHover={{ x: 5 }}
-                            >
-                              <Clock className="h-5 w-5 text-blue-200" />
-                              <span className="text-lg">{simulatorData.duration}</span>
-                            </motion.div>
-                          </>
-                        )}
-
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Button
-                            asChild
-                            className="w-full mt-6 bg-white text-blue-600 hover:bg-gray-100 shadow-lg"
-                          >
-                            <Link href={`/countries/${selectedDestination.code.toLowerCase()}`}>
-                              {simulatorData.visaRequired ? 'Commencer ma demande' : 'Découvrir la destination'}
-                            </Link>
-                          </Button>
-                        </motion.div>
-                      </motion.div>
-                    ) : (
-                      <motion.div 
-                        className="text-center py-8"
-                        animate={{ opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        <Globe className="h-12 w-12 text-blue-200 mx-auto mb-4" />
-                        <p className="text-blue-100">
-                          Sélectionnez vos pays d'origine et de destination pour voir l'estimation
-                        </p>
-                      </motion.div>
-                    )}
-                  </motion.div>
+            <div className="professional-card p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                  <h3 className="text-xl font-semibold mb-6 text-foreground">
+                    Sélectionnez vos pays
+                  </h3>
+                  <CountrySelector
+                    selectedOrigin={selectedOrigin}
+                    selectedDestination={selectedDestination}
+                    onOriginChange={setSelectedOrigin}
+                    onDestinationChange={setSelectedDestination}
+                  />
                 </div>
-              </Card>
-            </motion.div>
+
+                <div className="bg-primary/5 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold mb-6 text-foreground">Estimation</h3>
+                  {selectedOrigin && selectedDestination ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        <span className="text-foreground">
+                          {selectedOrigin.name} → {selectedDestination.name}
+                        </span>
+                      </div>
+
+                      {visaRequirements && (
+                        <div className="flex items-center space-x-3">
+                          <Shield className="h-4 w-4 text-primary" />
+                          <span className="text-foreground">{visaRequirements.message}</span>
+                        </div>
+                      )}
+
+                      {simulatorData.visaRequired && (
+                        <>
+                          <div className="flex items-center space-x-3">
+                            <CreditCard className="h-4 w-4 text-primary" />
+                            <span className="text-xl font-bold text-foreground">
+                              {simulatorData.cost}€
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <Clock className="h-4 w-4 text-primary" />
+                            <span className="text-foreground">{simulatorData.duration}</span>
+                          </div>
+                        </>
+                      )}
+
+                      <Button
+                        asChild
+                        className="w-full mt-6 btn-primary"
+                      >
+                        <Link href={`/countries/${selectedDestination.code.toLowerCase()}`}>
+                          {simulatorData.visaRequired ? 'Commencer ma demande' : 'Découvrir la destination'}
+                        </Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">
+                        Sélectionnez vos pays d'origine et de destination pour voir l'estimation
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section with 3D cards */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+      {/* Testimonials Section */}
+      <section className="section-padding">
+        <div className="container-max">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
               Ce que disent nos utilisateurs
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground">
               Plus de 25,000 voyageurs nous font confiance
             </p>
-          </motion.div>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.id}
-                initial={{ opacity: 0, y: 50, rotateY: 30 }}
-                whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                whileHover={{ 
-                  y: -10, 
-                  rotateY: 10,
-                  scale: 1.02,
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)'
-                }}
-                className="preserve-3d"
-              >
-                <Card className="h-full p-6 hover:shadow-xl transition-all duration-300 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                  <CardContent className="p-0">
-                    <motion.div 
-                      className="flex items-center space-x-3 mb-4"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <motion.div
-                        className="w-12 h-12 rounded-full bg-cover bg-center"
-                        style={{ backgroundImage: `url(${testimonial.image})` }}
-                        whileHover={{ scale: 1.1, rotateY: 15 }}
-                      />
-                      <div>
-                        <h4 className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{testimonial.country}</p>
-                      </div>
-                    </motion.div>
-                    
-                    <motion.div 
-                      className="flex items-center space-x-1 mb-3"
-                      whileHover={{ scale: 1.1 }}
-                    >
-                      {Array.from({ length: testimonial.rating }).map((_, i) => (
-                        <motion.div
-                          key={i}
-                          animate={{ rotate: [0, 360] }}
-                          transition={{ duration: 2, delay: i * 0.1, repeat: Infinity, repeatDelay: 3 }}
-                        >
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                    
-                    <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">
-                      "{testimonial.text}"
-                    </p>
-                    
-                    <Badge variant="outline" className="text-xs">
-                      Visa {testimonial.destination}
-                    </Badge>
-                  </CardContent>
-                </Card>
-              </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.map((testimonial) => (
+              <div key={testimonial.id} className="professional-card p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div
+                    className="w-12 h-12 rounded-full bg-cover bg-center"
+                    style={{ backgroundImage: `url(${testimonial.image})` }}
+                  />
+                  <div>
+                    <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
+                    <p className="text-sm text-muted-foreground">{testimonial.country}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-1 mb-3">
+                  {Array.from({ length: testimonial.rating }).map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                
+                <p className="text-muted-foreground text-sm mb-3">
+                  "{testimonial.text}"
+                </p>
+                
+                <Badge variant="outline" className="text-xs">
+                  Visa {testimonial.destination}
+                </Badge>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section with enhanced 3D */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 relative overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0">
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-blue-600/80 via-purple-600/80 to-pink-600/80"
-            animate={{
-              background: [
-                'linear-gradient(45deg, rgba(59, 130, 246, 0.8), rgba(147, 51, 234, 0.8), rgba(236, 72, 153, 0.8))',
-                'linear-gradient(225deg, rgba(236, 72, 153, 0.8), rgba(59, 130, 246, 0.8), rgba(147, 51, 234, 0.8))',
-                'linear-gradient(45deg, rgba(59, 130, 246, 0.8), rgba(147, 51, 234, 0.8), rgba(236, 72, 153, 0.8))'
-              ]
-            }}
-            transition={{ duration: 8, repeat: Infinity }}
-          />
-        </div>
-
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 50, rotateX: 20 }}
-            whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-            transition={{ duration: 0.8 }}
-            className="preserve-3d"
-          >
-            <motion.h2 
-              className="text-4xl font-bold text-white mb-6"
-              animate={{ 
-                textShadow: [
-                  '0 0 20px rgba(255, 255, 255, 0.5)',
-                  '0 0 40px rgba(255, 255, 255, 0.8)',
-                  '0 0 20px rgba(255, 255, 255, 0.5)'
-                ]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
+      {/* CTA Section */}
+      <section className="section-padding bg-primary text-primary-foreground">
+        <div className="container-max text-center">
+          <h2 className="text-3xl font-bold mb-4">
+            Prêt à partir à l'aventure ?
+          </h2>
+          <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
+            Rejoignez des milliers de voyageurs qui ont simplifié leurs démarches avec DORA
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              asChild
+              size="lg"
+              variant="secondary"
+              className="h-12 px-8"
             >
-              Prêt à partir à l'aventure ?
-            </motion.h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Rejoignez des milliers de voyageurs qui ont simplifié leurs démarches avec DORA
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.div
-                whileHover={{ 
-                  scale: 1.05, 
-                  rotateY: 5,
-                  boxShadow: '0 20px 40px rgba(255, 255, 255, 0.2)'
-                }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-6 text-lg shadow-2xl"
-                >
-                  <Link href="/countries">
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Commencer maintenant
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              </motion.div>
-              <motion.div
-                whileHover={{ 
-                  scale: 1.05, 
-                  rotateY: -5,
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)'
-                }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg glass-effect"
-                >
-                  <Link href="/community">Rejoindre la communauté</Link>
-                </Button>
-              </motion.div>
-            </div>
-          </motion.div>
+              <Link href="/countries">
+                Commencer maintenant
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="h-12 px-8 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+            >
+              <Link href="/community">Rejoindre la communauté</Link>
+            </Button>
+          </div>
         </div>
       </section>
     </div>
