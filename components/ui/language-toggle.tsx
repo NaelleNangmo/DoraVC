@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -33,49 +32,23 @@ export function LanguageToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <motion.div
-          whileHover={{ scale: 1.05, rotateY: 10 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Button variant="ghost" size="sm" className="w-9 h-9 p-0 glass-effect">
-            <motion.span
-              className="text-lg"
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            >
-              {getFlag()}
-            </motion.span>
-            <span className="sr-only">Changer la langue</span>
-          </Button>
-        </motion.div>
+        <Button variant="ghost" size="sm" className="w-9 h-9 p-0">
+          <span className="text-lg">{getFlag()}</span>
+          <span className="sr-only">Changer la langue</span>
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="glass-effect">
+      <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => changeLanguage('fr')}>
-          <motion.div
-            className="flex items-center"
-            whileHover={{ x: 5 }}
-          >
-            <span className="mr-2 text-lg">🇫🇷</span>
-            <span>Français</span>
-          </motion.div>
+          <span className="mr-2 text-lg">🇫🇷</span>
+          <span>Français</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => changeLanguage('en')}>
-          <motion.div
-            className="flex items-center"
-            whileHover={{ x: 5 }}
-          >
-            <span className="mr-2 text-lg">🇺🇸</span>
-            <span>English</span>
-          </motion.div>
+          <span className="mr-2 text-lg">🇺🇸</span>
+          <span>English</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => changeLanguage('es')}>
-          <motion.div
-            className="flex items-center"
-            whileHover={{ x: 5 }}
-          >
-            <span className="mr-2 text-lg">🇪🇸</span>
-            <span>Español</span>
-          </motion.div>
+          <span className="mr-2 text-lg">🇪🇸</span>
+          <span>Español</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
