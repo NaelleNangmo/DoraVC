@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowLeft, MapPin, Clock, CreditCard, Users, Star, Heart, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, CreditCard, Users, Star, Heart, ExternalLink, Briefcase, GraduationCap, Home, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +14,7 @@ import hotels from '@/data/hotels.json';
 import restaurants from '@/data/restaurants.json';
 import touristSites from '@/data/touristSites.json';
 import { formatCurrency, convertCurrency, type Currency } from '@/lib/currency';
+import { externalApiService } from '@/lib/services/externalApiService';
 
 interface CountryPageProps {
   params: {
@@ -27,18 +27,80 @@ export default function CountryPage({ params }: CountryPageProps) {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('EUR');
   const [favorites, setFavorites] = useState<{[key: string]: boolean}>({});
   const [activeTab, setActiveTab] = useState('overview');
-  const { isAuthenticated } = useAuth();
+  const [userStatus, setUserStatus] = useState('tourist'); // tourist, worker, student, resident
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [universities, setUniversities] = useState<any[]>([]);
+  const [housing, setHousing] = useState<any[]>([]);
+  const [gallery, setGallery] = useState<any[]>([]);
+  const [experiences, setExperiences] = useState<any[]>([]);
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     const foundCountry = countries.find(c => c.code.toLowerCase() === params.code.toLowerCase());
     setCountry(foundCountry);
+    
+    if (foundCountry) {
+      loadDynamicContent(foundCountry);
+      loadUserExperiences(foundCountry.id);
+    }
   }, [params.code]);
+
+  const loadDynamicContent = async (country: any) => {
+    try {
+      // Charger les données selon le statut de l'utilisateur
+      if (userStatus === 'worker') {
+        const jobData = await externalApiService.searchJobs({
+          location: country.name,
+          skills: user?.skills || ['Développement', 'Marketing'],
+          jobType: 'full-time'
+        });
+        setJobs(jobData);
+      }
+      
+      if (userStatus === 'student') {
+        const uniData = await externalApiService.searchUniversities({
+          country: country.name,
+          field: user?.field || 'Informatique',
+          level: 'master'
+        });
+        setUniversities(uniData);
+      }
+      
+      if (userStatus === 'resident') {
+        const housingData = await externalApiService.searchHousing({
+          location: country.name,
+          type: 'apartment',
+          budget: 1500
+        });
+        setHousing(housingData);
+      }
+      
+      // Charger la galerie d'images
+      const images = await externalApiService.getImages(`${country.name} tourism`, 12);
+      setGallery(images);
+      
+    } catch (error) {
+      console.error('Erreur lors du chargement du contenu dynamique:', error);
+    }
+  };
+
+  const loadUserExperiences = (countryId: number) => {
+    // Charger les expériences utilisateurs validées par l'admin
+    const savedPosts = localStorage.getItem('communityPosts');
+    if (savedPosts) {
+      const posts = JSON.parse(savedPosts);
+      const countryExperiences = posts.filter((post: any) => 
+        post.countryId === countryId && post.status === 'approved'
+      );
+      setExperiences(countryExperiences);
+    }
+  };
 
   if (!country) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Pays non trouvé</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-4">Pays non trouvé</h1>
           <Button asChild>
             <Link href="/countries">Retour aux destinations</Link>
           </Button>
@@ -64,7 +126,7 @@ export default function CountryPage({ params }: CountryPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative h-96 overflow-hidden">
         <div
@@ -74,12 +136,7 @@ export default function CountryPage({ params }: CountryPageProps) {
         <div className="absolute inset-0 bg-black/50" />
         
         <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-white"
-          >
+          <div className="text-white">
             <Button
               asChild
               variant="ghost"
@@ -108,17 +165,33 @@ export default function CountryPage({ params }: CountryPageProps) {
               </Badge>
               <span className="text-lg">{country.language} • {country.currency}</span>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Currency Selector */}
-      <section className="py-4 bg-white shadow-sm">
+      {/* Status Selector & Currency */}
+      <section className="py-4 bg-muted/30 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Informations détaillées
-            </h2>
+            <div className="flex items-center space-x-4">
+              <h2 className="text-lg font-semibold text-foreground">
+                Votre statut :
+              </h2>
+              <Select value={userStatus} onValueChange={(value) => {
+                setUserStatus(value);
+                loadDynamicContent(country);
+              }}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tourist">🏖️ Touriste</SelectItem>
+                  <SelectItem value="worker">💼 Travailleur</SelectItem>
+                  <SelectItem value="student">🎓 Étudiant</SelectItem>
+                  <SelectItem value="resident">🏠 Résident permanent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <Select value={selectedCurrency} onValueChange={(value: Currency) => setSelectedCurrency(value)}>
               <SelectTrigger className="w-32">
                 <SelectValue />
@@ -137,47 +210,54 @@ export default function CountryPage({ params }: CountryPageProps) {
       <section className="py-8">
         <div className="container mx-auto px-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 lg:w-fit lg:grid-cols-4">
+            <TabsList className="grid w-full grid-cols-6 lg:w-fit lg:grid-cols-6">
               <TabsTrigger value="overview">Aperçu</TabsTrigger>
               <TabsTrigger value="visa">Visa</TabsTrigger>
-              <TabsTrigger value="accommodations">Hébergements</TabsTrigger>
+              <TabsTrigger value="specific">
+                {userStatus === 'tourist' && 'Tourisme'}
+                {userStatus === 'worker' && 'Emploi'}
+                {userStatus === 'student' && 'Études'}
+                {userStatus === 'resident' && 'Logement'}
+              </TabsTrigger>
               <TabsTrigger value="experiences">Expériences</TabsTrigger>
+              <TabsTrigger value="gallery">Galerie</TabsTrigger>
+              <TabsTrigger value="accommodations">Hébergements</TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="mt-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                  <Card>
+                  <Card className="professional-card">
                     <CardHeader>
                       <CardTitle>À propos de {country.name}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-gray-700 leading-relaxed mb-6">
+                      <p className="text-muted-foreground leading-relaxed mb-6">
                         {country.description}
                       </p>
                       
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4 text-gray-500" />
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">
                             <strong>Capitale:</strong> {country.capital}
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Users className="h-4 w-4 text-gray-500" />
+                          <Users className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">
                             <strong>Langue:</strong> {country.language}
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <CreditCard className="h-4 w-4 text-gray-500" />
+                          <CreditCard className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">
                             <strong>Monnaie:</strong> {country.currency}
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Star className="h-4 w-4 text-gray-500" />
+                          <Star className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">
                             <strong>Saison:</strong> {country.popularSeason}
                           </span>
@@ -188,21 +268,21 @@ export default function CountryPage({ params }: CountryPageProps) {
                 </div>
 
                 <div>
-                  <Card>
+                  <Card className="professional-card">
                     <CardHeader>
                       <CardTitle>Informations pratiques</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="p-4 bg-blue-50 rounded-lg">
-                        <h4 className="font-semibold text-blue-900 mb-2">Visa</h4>
-                        <p className="text-sm text-blue-700">
+                      <div className="p-4 bg-primary/5 rounded-lg">
+                        <h4 className="font-semibold text-primary mb-2">Visa</h4>
+                        <p className="text-sm text-muted-foreground">
                           {country.visaRequired 
                             ? `Visa requis • ${country.processingTime}`
                             : 'Aucun visa requis pour les séjours touristiques'
                           }
                         </p>
                         {country.visaRequired && (
-                          <p className="text-sm text-blue-700 mt-1">
+                          <p className="text-sm text-muted-foreground mt-1">
                             Coût: {formatCurrency(convertPrice(country.averageCost, 'EUR'), selectedCurrency)}
                           </p>
                         )}
@@ -219,17 +299,17 @@ export default function CountryPage({ params }: CountryPageProps) {
                       <div className="pt-4 border-t">
                         <h4 className="font-semibold mb-3">Aperçu rapide</h4>
                         <div className="grid grid-cols-3 gap-2 text-center">
-                          <div className="p-2 bg-gray-50 rounded">
-                            <div className="text-lg font-bold text-blue-600">{countryHotels.length}</div>
-                            <div className="text-xs text-gray-600">Hôtels</div>
+                          <div className="p-2 bg-muted rounded">
+                            <div className="text-lg font-bold text-primary">{countryHotels.length}</div>
+                            <div className="text-xs text-muted-foreground">Hôtels</div>
                           </div>
-                          <div className="p-2 bg-gray-50 rounded">
-                            <div className="text-lg font-bold text-green-600">{countryRestaurants.length}</div>
-                            <div className="text-xs text-gray-600">Restaurants</div>
+                          <div className="p-2 bg-muted rounded">
+                            <div className="text-lg font-bold text-primary">{countryRestaurants.length}</div>
+                            <div className="text-xs text-muted-foreground">Restaurants</div>
                           </div>
-                          <div className="p-2 bg-gray-50 rounded">
-                            <div className="text-lg font-bold text-purple-600">{countrySites.length}</div>
-                            <div className="text-xs text-gray-600">Sites</div>
+                          <div className="p-2 bg-muted rounded">
+                            <div className="text-lg font-bold text-primary">{countrySites.length}</div>
+                            <div className="text-xs text-muted-foreground">Sites</div>
                           </div>
                         </div>
                       </div>
@@ -242,16 +322,16 @@ export default function CountryPage({ params }: CountryPageProps) {
             {/* Visa Tab */}
             <TabsContent value="visa" className="mt-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
+                <Card className="professional-card">
                   <CardHeader>
                     <CardTitle>Exigences de visa</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {country.visaRequired ? (
                       <div className="space-y-4">
-                        <div className="p-4 bg-red-50 rounded-lg">
-                          <h4 className="font-semibold text-red-900 mb-2">Visa requis</h4>
-                          <p className="text-sm text-red-700">
+                        <div className="p-4 bg-destructive/10 rounded-lg">
+                          <h4 className="font-semibold text-destructive mb-2">Visa requis</h4>
+                          <p className="text-sm text-muted-foreground">
                             Un visa est nécessaire pour entrer en {country.name}
                           </p>
                         </div>
@@ -271,7 +351,7 @@ export default function CountryPage({ params }: CountryPageProps) {
 
                         <div className="pt-4 border-t">
                           <h4 className="font-semibold mb-3">Documents requis</h4>
-                          <ul className="space-y-2 text-sm text-gray-700">
+                          <ul className="space-y-2 text-sm text-muted-foreground">
                             <li>• Passeport valide (minimum 6 mois)</li>
                             <li>• Photo d'identité récente</li>
                             <li>• Formulaire de demande complété</li>
@@ -290,9 +370,9 @@ export default function CountryPage({ params }: CountryPageProps) {
                         )}
                       </div>
                     ) : (
-                      <div className="p-4 bg-green-50 rounded-lg">
-                        <h4 className="font-semibold text-green-900 mb-2">Aucun visa requis</h4>
-                        <p className="text-sm text-green-700">
+                      <div className="p-4 bg-primary/10 rounded-lg">
+                        <h4 className="font-semibold text-primary mb-2">Aucun visa requis</h4>
+                        <p className="text-sm text-muted-foreground">
                           Vous pouvez voyager en {country.name} sans visa pour les séjours touristiques de courte durée.
                         </p>
                       </div>
@@ -300,57 +380,37 @@ export default function CountryPage({ params }: CountryPageProps) {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="professional-card">
                   <CardHeader>
                     <CardTitle>Processus de demande</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {country.visaRequired ? (
                       <div className="space-y-4">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-semibold text-blue-600">
-                            1
+                        {[
+                          { step: 1, title: 'Préparation', desc: 'Rassemblez tous les documents requis' },
+                          { step: 2, title: 'Rendez-vous', desc: 'Prenez rendez-vous au consulat' },
+                          { step: 3, title: 'Soumission', desc: 'Soumettez votre dossier complet' },
+                          { step: 4, title: 'Suivi', desc: 'Suivez l\'évolution de votre demande' }
+                        ].map((item) => (
+                          <div key={item.step} className="flex items-start space-x-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
+                              {item.step}
+                            </div>
+                            <div>
+                              <h4 className="font-semibold">{item.title}</h4>
+                              <p className="text-sm text-muted-foreground">{item.desc}</p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-semibold">Préparation</h4>
-                            <p className="text-sm text-gray-600">Rassemblez tous les documents requis</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-semibold text-blue-600">
-                            2
-                          </div>
-                          <div>
-                            <h4 className="font-semibold">Rendez-vous</h4>
-                            <p className="text-sm text-gray-600">Prenez rendez-vous au consulat</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-semibold text-blue-600">
-                            3
-                          </div>
-                          <div>
-                            <h4 className="font-semibold">Soumission</h4>
-                            <p className="text-sm text-gray-600">Soumettez votre dossier complet</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-semibold text-blue-600">
-                            4
-                          </div>
-                          <div>
-                            <h4 className="font-semibold">Suivi</h4>
-                            <p className="text-sm text-gray-600">Suivez l'évolution de votre demande</p>
-                          </div>
-                        </div>
+                        ))}
                       </div>
                     ) : (
                       <div className="text-center py-8">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Users className="h-8 w-8 text-green-600" />
+                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Users className="h-8 w-8 text-primary" />
                         </div>
                         <h4 className="font-semibold mb-2">Voyage simplifié</h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           Aucune démarche de visa nécessaire. Vous pouvez voyager librement !
                         </p>
                       </div>
@@ -360,203 +420,500 @@ export default function CountryPage({ params }: CountryPageProps) {
               </div>
             </TabsContent>
 
-            {/* Accommodations Tab */}
-            <TabsContent value="accommodations" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {countryHotels.map((hotel, index) => (
-                  <motion.div
-                    key={hotel.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                  >
-                    <Card className="h-full hover:shadow-lg transition-shadow">
+            {/* Status-specific Tab */}
+            <TabsContent value="specific" className="mt-6">
+              {userStatus === 'tourist' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {countrySites.map((site) => (
+                    <Card key={site.id} className="professional-card subtle-hover">
                       <div className="relative h-48 overflow-hidden rounded-t-lg">
                         <div
                           className="w-full h-full bg-cover bg-center"
-                          style={{ backgroundImage: `url(${hotel.image})` }}
+                          style={{ backgroundImage: `url(${site.image})` }}
                         />
                         <button
-                          onClick={() => toggleFavorite('hotel', hotel.id)}
-                          className="absolute top-3 right-3 p-2 bg-white/80 rounded-full hover:bg-white transition-colors"
+                          onClick={() => toggleFavorite('site', site.id)}
+                          className="absolute top-3 right-3 p-2 bg-background/80 rounded-full hover:bg-background transition-colors"
                         >
                           <Heart
                             className={`h-4 w-4 ${
-                              favorites[`hotel-${hotel.id}`] ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                              favorites[`site-${site.id}`] ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
                             }`}
                           />
                         </button>
                         <div className="absolute bottom-3 left-3">
-                          <div className="flex items-center space-x-1">
-                            {Array.from({ length: hotel.rating }).map((_, i) => (
-                              <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            ))}
-                          </div>
+                          <Badge className="bg-background/90 text-foreground">
+                            {site.category}
+                          </Badge>
                         </div>
                       </div>
                       <CardContent className="p-4">
-                        <h3 className="font-semibold text-lg mb-1">{hotel.name}</h3>
-                        <p className="text-sm text-gray-600 mb-3 flex items-center">
+                        <h4 className="font-semibold text-lg mb-2">{site.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-2 flex items-center">
                           <MapPin className="h-3 w-3 mr-1" />
-                          {hotel.location}
+                          {site.location}
                         </p>
-                        <p className="text-sm text-gray-700 mb-4">
-                          {hotel.description}
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {site.description}
                         </p>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-2xl font-bold text-blue-600">
-                              {formatCurrency(convertPrice(hotel.price, hotel.currency as Currency), selectedCurrency)}
-                            </span>
-                            <span className="text-sm text-gray-500">/nuit</span>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Durée recommandée</span>
+                            <span className="font-medium">{site.visitDuration}</span>
                           </div>
-                          <Button size="sm" variant="outline">
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Voir
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-1 mt-3">
-                          {hotel.amenities.slice(0, 3).map((amenity, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {amenity}
-                            </Badge>
-                          ))}
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Meilleure période</span>
+                            <span className="font-medium">{site.bestTime}</span>
+                          </div>
+                          {site.entryFee > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Entrée</span>
+                              <span className="font-medium text-primary">
+                                {formatCurrency(convertPrice(site.entryFee, site.currency as Currency), selectedCurrency)}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
-                  </motion.div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
+
+              {userStatus === 'worker' && (
+                <div className="space-y-6">
+                  <div className="text-center mb-8">
+                    <Briefcase className="h-16 w-16 text-primary mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Opportunités d'emploi en {country.name}</h2>
+                    <p className="text-muted-foreground">Découvrez les offres d'emploi qui correspondent à votre profil</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {jobs.map((job) => (
+                      <Card key={job.id} className="professional-card">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="font-semibold text-lg">{job.title}</h3>
+                              <p className="text-muted-foreground">{job.company}</p>
+                            </div>
+                            <Badge variant="outline">{job.type}</Badge>
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground mb-4">{job.description}</p>
+                          
+                          <div className="space-y-2 text-sm mb-4">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Localisation</span>
+                              <span>{job.location}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Salaire</span>
+                              <span className="font-medium text-primary">{job.salary}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Publié le</span>
+                              <span>{new Date(job.posted).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {job.requirements.map((req: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {req}
+                              </Badge>
+                            ))}
+                          </div>
+                          
+                          <Button className="w-full" onClick={() => window.open(job.url, '_blank')}>
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Voir l'offre
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {userStatus === 'student' && (
+                <div className="space-y-6">
+                  <div className="text-center mb-8">
+                    <GraduationCap className="h-16 w-16 text-primary mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Universités en {country.name}</h2>
+                    <p className="text-muted-foreground">Trouvez l'université parfaite pour vos études</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {universities.map((uni) => (
+                      <Card key={uni.id} className="professional-card">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="font-semibold text-lg">{uni.name}</h3>
+                              <p className="text-muted-foreground">{uni.location}</p>
+                            </div>
+                            <Badge variant="outline">Rang #{uni.ranking}</Badge>
+                          </div>
+                          
+                          <div className="space-y-2 text-sm mb-4">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Domaine</span>
+                              <span>{uni.field}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Niveau</span>
+                              <span>{uni.level}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Frais de scolarité</span>
+                              <span className="font-medium text-primary">{uni.tuition}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Date limite</span>
+                              <span>{new Date(uni.admissionDeadline).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="mb-4">
+                            <h4 className="font-medium mb-2">Exigences d'admission</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {uni.requirements.map((req: string, index: number) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {req}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="mb-4">
+                            <h4 className="font-medium mb-2">Bourses disponibles</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {uni.scholarships.map((scholarship: string, index: number) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {scholarship}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <Button className="w-full" onClick={() => window.open(uni.website, '_blank')}>
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Site web
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {userStatus === 'resident' && (
+                <div className="space-y-6">
+                  <div className="text-center mb-8">
+                    <Home className="h-16 w-16 text-primary mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Logements en {country.name}</h2>
+                    <p className="text-muted-foreground">Trouvez votre nouveau chez-vous</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {housing.map((house) => (
+                      <Card key={house.id} className="professional-card">
+                        <div className="relative h-48 overflow-hidden rounded-t-lg">
+                          <div
+                            className="w-full h-full bg-cover bg-center"
+                            style={{ backgroundImage: `url(${house.images[0]})` }}
+                          />
+                          <div className="absolute top-3 right-3">
+                            <Badge className="bg-background/90 text-foreground">
+                              {house.type}
+                            </Badge>
+                          </div>
+                        </div>
+                        <CardContent className="p-6">
+                          <h3 className="font-semibold text-lg mb-2">{house.title}</h3>
+                          <p className="text-sm text-muted-foreground mb-2 flex items-center">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {house.location}
+                          </p>
+                          <p className="text-sm text-muted-foreground mb-4">{house.description}</p>
+                          
+                          <div className="space-y-2 text-sm mb-4">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Prix</span>
+                              <span className="font-medium text-primary">{house.price}€/mois</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Surface</span>
+                              <span>{house.size}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Pièces</span>
+                              <span>{house.rooms}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Disponible</span>
+                              <span>{new Date(house.available).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="mb-4">
+                            <h4 className="font-medium mb-2">Équipements</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {house.amenities.map((amenity: string, index: number) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {amenity}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <Button className="w-full" onClick={() => window.open(`mailto:${house.contact}`, '_blank')}>
+                            Contacter
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </TabsContent>
 
             {/* Experiences Tab */}
             <TabsContent value="experiences" className="mt-6">
+              <div className="space-y-6">
+                <div className="text-center mb-8">
+                  <Users className="h-16 w-16 text-primary mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold mb-2">Expériences partagées</h2>
+                  <p className="text-muted-foreground">Découvrez les témoignages d'autres voyageurs</p>
+                </div>
+                
+                {experiences.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {experiences.map((exp) => (
+                      <Card key={exp.id} className="professional-card">
+                        <CardContent className="p-6">
+                          <div className="flex items-center space-x-3 mb-4">
+                            <div
+                              className="w-12 h-12 rounded-full bg-cover bg-center"
+                              style={{ backgroundImage: `url(${exp.userAvatar})` }}
+                            />
+                            <div>
+                              <h4 className="font-semibold">{exp.userName}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(exp.createdAt).toLocaleDateString('fr-FR')}
+                              </p>
+                            </div>
+                            {exp.rating && (
+                              <div className="ml-auto flex items-center">
+                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                                <span className="text-sm font-medium">{exp.rating}/5</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <h3 className="font-semibold mb-2">{exp.title}</h3>
+                          <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                            {exp.content}
+                          </p>
+                          
+                          {exp.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {exp.tags.slice(0, 3).map((tag: string, index: number) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  #{tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            <span className="flex items-center">
+                              <Heart className="h-4 w-4 mr-1" />
+                              {exp.likes}
+                            </span>
+                            <span className="flex items-center">
+                              <Users className="h-4 w-4 mr-1" />
+                              {exp.comments}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Aucune expérience partagée</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Soyez le premier à partager votre expérience dans ce pays !
+                    </p>
+                    {isAuthenticated && (
+                      <Button asChild>
+                        <Link href="/community">Partager mon expérience</Link>
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Gallery Tab */}
+            <TabsContent value="gallery" className="mt-6">
+              <div className="space-y-6">
+                <div className="text-center mb-8">
+                  <Camera className="h-16 w-16 text-primary mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold mb-2">Galerie de {country.name}</h2>
+                  <p className="text-muted-foreground">Découvrez la beauté de ce pays en images</p>
+                </div>
+                
+                {gallery.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {gallery.map((image) => (
+                      <Card key={image.id} className="professional-card overflow-hidden">
+                        <div className="relative h-64 overflow-hidden">
+                          <div
+                            className="w-full h-full bg-cover bg-center transition-transform duration-300 hover:scale-105"
+                            style={{ backgroundImage: `url(${image.url})` }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                          <div className="absolute bottom-4 left-4 text-white">
+                            <p className="text-sm font-medium">{image.description}</p>
+                            <p className="text-xs opacity-75">Par {image.photographer}</p>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Galerie en cours de chargement</h3>
+                    <p className="text-muted-foreground">
+                      Les images seront bientôt disponibles
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Accommodations Tab */}
+            <TabsContent value="accommodations" className="mt-6">
               <div className="space-y-8">
                 {/* Restaurants */}
                 <div>
                   <h3 className="text-2xl font-bold mb-6">Restaurants recommandés</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {countryRestaurants.map((restaurant, index) => (
-                      <motion.div
-                        key={restaurant.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: index * 0.1 }}
-                      >
-                        <Card className="hover:shadow-lg transition-shadow">
-                          <div className="flex">
-                            <div className="relative w-32 h-32 overflow-hidden">
-                              <div
-                                className="w-full h-full bg-cover bg-center"
-                                style={{ backgroundImage: `url(${restaurant.image})` }}
-                              />
-                            </div>
-                            <CardContent className="flex-1 p-4">
-                              <div className="flex items-start justify-between mb-2">
-                                <h4 className="font-semibold text-lg">{restaurant.name}</h4>
-                                <button
-                                  onClick={() => toggleFavorite('restaurant', restaurant.id)}
-                                  className="p-1"
-                                >
-                                  <Heart
-                                    className={`h-4 w-4 ${
-                                      favorites[`restaurant-${restaurant.id}`] ? 'fill-red-500 text-red-500' : 'text-gray-400'
-                                    }`}
-                                  />
-                                </button>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2 flex items-center">
-                                <MapPin className="h-3 w-3 mr-1" />
-                                {restaurant.location}
-                              </p>
-                              <p className="text-sm text-gray-700 mb-3">
-                                {restaurant.description}
-                              </p>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                  <div className="flex items-center space-x-1">
-                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-sm">{restaurant.rating}</span>
-                                  </div>
-                                  <Badge variant="outline" className="text-xs">
-                                    {restaurant.cuisine}
-                                  </Badge>
-                                </div>
-                                <span className="font-semibold text-green-600">
-                                  {formatCurrency(convertPrice(restaurant.averagePrice, restaurant.currency as Currency), selectedCurrency)}
-                                </span>
-                              </div>
-                            </CardContent>
+                    {countryRestaurants.map((restaurant) => (
+                      <Card key={restaurant.id} className="professional-card subtle-hover">
+                        <div className="flex">
+                          <div className="relative w-32 h-32 overflow-hidden">
+                            <div
+                              className="w-full h-full bg-cover bg-center"
+                              style={{ backgroundImage: `url(${restaurant.image})` }}
+                            />
                           </div>
-                        </Card>
-                      </motion.div>
+                          <CardContent className="flex-1 p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <h4 className="font-semibold text-lg">{restaurant.name}</h4>
+                              <button
+                                onClick={() => toggleFavorite('restaurant', restaurant.id)}
+                                className="p-1"
+                              >
+                                <Heart
+                                  className={`h-4 w-4 ${
+                                    favorites[`restaurant-${restaurant.id}`] ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+                                  }`}
+                                />
+                              </button>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2 flex items-center">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {restaurant.location}
+                            </p>
+                            <p className="text-sm text-muted-foreground mb-3">
+                              {restaurant.description}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className="flex items-center space-x-1">
+                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                  <span className="text-sm">{restaurant.rating}</span>
+                                </div>
+                                <Badge variant="outline" className="text-xs">
+                                  {restaurant.cuisine}
+                                </Badge>
+                              </div>
+                              <span className="font-semibold text-primary">
+                                {formatCurrency(convertPrice(restaurant.averagePrice, restaurant.currency as Currency), selectedCurrency)}
+                              </span>
+                            </div>
+                          </CardContent>
+                        </div>
+                      </Card>
                     ))}
                   </div>
                 </div>
 
-                {/* Tourist Sites */}
+                {/* Hotels */}
                 <div>
-                  <h3 className="text-2xl font-bold mb-6">Sites touristiques</h3>
+                  <h3 className="text-2xl font-bold mb-6">Hébergements</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {countrySites.map((site, index) => (
-                      <motion.div
-                        key={site.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: index * 0.1 }}
-                      >
-                        <Card className="h-full hover:shadow-lg transition-shadow">
-                          <div className="relative h-48 overflow-hidden rounded-t-lg">
-                            <div
-                              className="w-full h-full bg-cover bg-center"
-                              style={{ backgroundImage: `url(${site.image})` }}
+                    {countryHotels.map((hotel) => (
+                      <Card key={hotel.id} className="professional-card subtle-hover">
+                        <div className="relative h-48 overflow-hidden rounded-t-lg">
+                          <div
+                            className="w-full h-full bg-cover bg-center"
+                            style={{ backgroundImage: `url(${hotel.image})` }}
+                          />
+                          <button
+                            onClick={() => toggleFavorite('hotel', hotel.id)}
+                            className="absolute top-3 right-3 p-2 bg-background/80 rounded-full hover:bg-background transition-colors"
+                          >
+                            <Heart
+                              className={`h-4 w-4 ${
+                                favorites[`hotel-${hotel.id}`] ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+                              }`}
                             />
-                            <button
-                              onClick={() => toggleFavorite('site', site.id)}
-                              className="absolute top-3 right-3 p-2 bg-white/80 rounded-full hover:bg-white transition-colors"
-                            >
-                              <Heart
-                                className={`h-4 w-4 ${
-                                  favorites[`site-${site.id}`] ? 'fill-red-500 text-red-500' : 'text-gray-600'
-                                }`}
-                              />
-                            </button>
-                            <div className="absolute bottom-3 left-3">
-                              <Badge className="bg-white/90 text-gray-900">
-                                {site.category}
-                              </Badge>
+                          </button>
+                          <div className="absolute bottom-3 left-3">
+                            <div className="flex items-center space-x-1">
+                              {Array.from({ length: hotel.rating }).map((_, i) => (
+                                <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                              ))}
                             </div>
                           </div>
-                          <CardContent className="p-4">
-                            <h4 className="font-semibold text-lg mb-2">{site.name}</h4>
-                            <p className="text-sm text-gray-600 mb-2 flex items-center">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {site.location}
-                            </p>
-                            <p className="text-sm text-gray-700 mb-4">
-                              {site.description}
-                            </p>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Durée recommandée</span>
-                                <span className="font-medium">{site.visitDuration}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Meilleure période</span>
-                                <span className="font-medium">{site.bestTime}</span>
-                              </div>
-                              {site.entryFee > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Entrée</span>
-                                  <span className="font-medium text-green-600">
-                                    {formatCurrency(convertPrice(site.entryFee, site.currency as Currency), selectedCurrency)}
-                                  </span>
-                                </div>
-                              )}
+                        </div>
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold text-lg mb-1">{hotel.name}</h3>
+                          <p className="text-sm text-muted-foreground mb-3 flex items-center">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {hotel.location}
+                          </p>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            {hotel.description}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="text-2xl font-bold text-primary">
+                                {formatCurrency(convertPrice(hotel.price, hotel.currency as Currency), selectedCurrency)}
+                              </span>
+                              <span className="text-sm text-muted-foreground">/nuit</span>
                             </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
+                            <Button size="sm" variant="outline">
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Voir
+                            </Button>
+                          </div>
+                          <div className="flex flex-wrap gap-1 mt-3">
+                            {hotel.amenities.slice(0, 3).map((amenity, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {amenity}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </div>
