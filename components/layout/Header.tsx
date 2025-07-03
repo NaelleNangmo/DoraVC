@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Search, Globe, User, LogOut, Settings, Shield } from 'lucide-react';
+import { Menu, X, Search, Globe, User, LogOut, Settings, Shield, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,8 +22,11 @@ export function Header() {
     { name: 'Accueil', href: '/' },
     { name: 'Pays', href: '/countries' },
     { name: 'Communauté', href: '/community' },
-    ...(isAuthenticated ? [{ name: 'Mes démarches', href: '/visa-steps' }] : []),
-    ...(isAdmin ? [{ name: 'Administration', href: '/admin' }] : []),
+    ...(isAuthenticated ? [
+      { name: 'Mes démarches', href: '/visa-steps' },
+      { name: 'Intégration', href: '/integration' }
+    ] : []),
+    ...(isAdmin ? [{ name: 'Dashboard', href: '/admin' }] : []),
   ];
 
   const handleSearch = (e: React.FormEvent) => {
@@ -110,12 +113,20 @@ export function Header() {
                       </Link>
                     </DropdownMenuItem>
                     {isAuthenticated && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/visa-steps">
-                          <Globe className="mr-2 h-4 w-4" />
-                          Mes démarches
-                        </Link>
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link href="/visa-steps">
+                            <Globe className="mr-2 h-4 w-4" />
+                            Mes démarches
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/integration">
+                            <MapPin className="mr-2 h-4 w-4" />
+                            Intégration
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
                     )}
                     <DropdownMenuItem asChild>
                       <Link href="/settings">
@@ -129,7 +140,7 @@ export function Header() {
                         <DropdownMenuItem asChild>
                           <Link href="/admin">
                             <Shield className="mr-2 h-4 w-4" />
-                            Administration
+                            Dashboard
                           </Link>
                         </DropdownMenuItem>
                       </>
@@ -144,7 +155,7 @@ export function Header() {
               ) : (
                 <Button 
                   onClick={() => setIsLoginModalOpen(true)}
-                  className="btn-primary"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   Se connecter
                 </Button>
@@ -226,7 +237,7 @@ export function Header() {
                       setIsLoginModalOpen(true);
                       setIsMenuOpen(false);
                     }}
-                    className="btn-primary"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     Se connecter
                   </Button>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Globe, Shield, Users, Star, MapPin, Clock, CreditCard, Search } from 'lucide-react';
+import { ArrowRight, Globe, Shield, Users, Star, MapPin, Clock, CreditCard, Search, CheckCircle, TrendingUp, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,7 +19,8 @@ const testimonials = [
     image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     rating: 5,
     text: "DORA m'a aidée à obtenir mon visa canadien en toute sérénité. Le processus était clairement expliqué !",
-    destination: "Canada"
+    destination: "Canada",
+    status: "Étudiante"
   },
   {
     id: 2,
@@ -28,7 +29,8 @@ const testimonials = [
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
     rating: 5,
     text: "Interface intuitive et conseils précieux. Mon voyage au Japon s'est parfaitement déroulé !",
-    destination: "Japon"
+    destination: "Japon",
+    status: "Travailleur"
   },
   {
     id: 3,
@@ -37,36 +39,66 @@ const testimonials = [
     image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face",
     rating: 5,
     text: "Excellent service ! L'assistant IA m'a guidée pas à pas dans mes démarches.",
-    destination: "États-Unis"
+    destination: "États-Unis",
+    status: "Résidente"
   }
 ];
 
 const features = [
   {
-    icon: <Shield className="h-6 w-6" />,
-    title: "Accompagnement Complet",
-    description: "Guide étape par étape pour vos démarches de visa",
+    icon: <Shield className="h-8 w-8" />,
+    title: "Accompagnement Personnalisé",
+    description: "Guide adapté à votre statut : touriste, étudiant, travailleur ou résident",
     image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&h=300&fit=crop"
   },
   {
-    icon: <Globe className="h-6 w-6" />,
+    icon: <Globe className="h-8 w-8" />,
     title: "180+ Destinations",
-    description: "Informations détaillées sur tous les pays",
+    description: "Informations détaillées et mises à jour en temps réel",
     image: "https://images.unsplash.com/photo-1502602898536-47ad22581b52?w=400&h=300&fit=crop"
   },
   {
-    icon: <Users className="h-6 w-6" />,
+    icon: <Users className="h-8 w-8" />,
     title: "Communauté Active",
     description: "Partagez vos expériences avec d'autres voyageurs",
     image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=300&fit=crop"
+  },
+  {
+    icon: <TrendingUp className="h-8 w-8" />,
+    title: "Intégration Complète",
+    description: "Aide à l'installation dans votre nouveau pays",
+    image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop"
   }
 ];
 
 const stats = [
-  { number: "25,000+", label: "Visas traités", icon: <Shield className="h-5 w-5" /> },
-  { number: "180+", label: "Destinations", icon: <Globe className="h-5 w-5" /> },
-  { number: "98%", label: "Taux de succès", icon: <Star className="h-5 w-5" /> },
-  { number: "24/7", label: "Support IA", icon: <Clock className="h-5 w-5" /> }
+  { number: "25,000+", label: "Visas traités", icon: <Shield className="h-6 w-6" /> },
+  { number: "180+", label: "Destinations", icon: <Globe className="h-6 w-6" /> },
+  { number: "98%", label: "Taux de succès", icon: <Star className="h-6 w-6" /> },
+  { number: "24/7", label: "Support IA", icon: <Clock className="h-6 w-6" /> }
+];
+
+const processSteps = [
+  {
+    step: "01",
+    title: "Choisissez votre destination",
+    description: "Sélectionnez le pays et définissez votre statut (touriste, étudiant, travailleur, résident)"
+  },
+  {
+    step: "02", 
+    title: "Suivez votre parcours personnalisé",
+    description: "Étapes adaptées à votre profil avec documents requis et délais"
+  },
+  {
+    step: "03",
+    title: "Obtenez votre visa",
+    description: "Suivi en temps réel jusqu'à l'obtention de votre visa"
+  },
+  {
+    step: "04",
+    title: "Intégrez-vous facilement",
+    description: "Aide à l'installation et découverte de votre nouveau pays"
+  }
 ];
 
 export default function HomePage() {
@@ -149,28 +181,33 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-b from-primary/5 to-background">
-        <div className="container-max section-padding">
+      <section className="relative py-20 bg-gradient-to-br from-primary/5 via-background to-primary/5">
+        <div className="container mx-auto px-4">
           <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center px-4 py-2 bg-primary/10 rounded-full text-primary text-sm font-medium mb-6">
+              <Award className="h-4 w-4 mr-2" />
+              Plateforme de confiance pour vos démarches de visa
+            </div>
+            
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
               Simplifiez vos
               <span className="block text-primary">Démarches de Visa</span>
             </h1>
             
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              DORA vous accompagne pas à pas dans l'obtention de votre visa avec des conseils personnalisés et un suivi complet.
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
+              DORA vous accompagne pas à pas dans l'obtention de votre visa avec des conseils personnalisés selon votre statut et un suivi complet jusqu'à votre intégration.
             </p>
 
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="max-w-md mx-auto mb-8">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Rechercher une destination..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12"
+                  className="pl-12 h-12 text-base"
                 />
               </div>
             </form>
@@ -180,11 +217,11 @@ export default function HomePage() {
               <Button
                 asChild
                 size="lg"
-                className="btn-primary h-12 px-8"
+                className="h-12 px-8"
               >
                 <Link href={isAuthenticated ? "/visa-steps" : "/countries"}>
                   {isAuthenticated ? "Continuer ma demande" : "Commencer maintenant"}
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
               
@@ -202,8 +239,8 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="section-padding bg-muted/30">
-        <div className="container-max">
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
@@ -212,7 +249,7 @@ export default function HomePage() {
                     {stat.icon}
                   </div>
                 </div>
-                <div className="text-2xl font-bold text-foreground mb-1">
+                <div className="text-3xl font-bold text-foreground mb-1">
                   {stat.number}
                 </div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
@@ -222,28 +259,63 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Process Steps */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              Comment ça marche ?
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Un processus simple et personnalisé en 4 étapes
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {processSteps.map((step, index) => (
+              <div key={index} className="text-center">
+                <div className="relative mb-6">
+                  <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xl font-bold mx-auto">
+                    {step.step}
+                  </div>
+                  {index < processSteps.length - 1 && (
+                    <div className="hidden lg:block absolute top-8 left-full w-full h-0.5 bg-border -translate-x-8" />
+                  )}
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  {step.title}
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
-      <section className="section-padding">
-        <div className="container-max">
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
               Pourquoi choisir DORA ?
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Une plateforme complète pour tous vos besoins de voyage
+              Une plateforme complète pour tous vos besoins de voyage et d'immigration
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="professional-card p-6 subtle-hover">
-                <div className="h-48 bg-cover bg-center rounded-lg mb-4"
+              <div key={index} className="professional-card p-6">
+                <div className="h-48 bg-cover bg-center rounded-lg mb-6"
                      style={{ backgroundImage: `url(${feature.image})` }} />
-                <div className="flex items-center mb-3">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary mr-3">
+                <div className="flex items-center mb-4">
+                  <div className="p-3 bg-primary/10 rounded-lg text-primary mr-4">
                     {feature.icon}
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">
+                  <h3 className="text-xl font-semibold text-foreground">
                     {feature.title}
                   </h3>
                 </div>
@@ -257,8 +329,8 @@ export default function HomePage() {
       </section>
 
       {/* Visa Simulator */}
-      <section className="section-padding bg-muted/30">
-        <div className="container-max">
+      <section className="py-16">
+        <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-foreground mb-4">
@@ -288,7 +360,7 @@ export default function HomePage() {
                   {selectedOrigin && selectedDestination ? (
                     <div className="space-y-4">
                       <div className="flex items-center space-x-3">
-                        <MapPin className="h-4 w-4 text-primary" />
+                        <MapPin className="h-5 w-5 text-primary" />
                         <span className="text-foreground">
                           {selectedOrigin.name} → {selectedDestination.name}
                         </span>
@@ -296,7 +368,7 @@ export default function HomePage() {
 
                       {visaRequirements && (
                         <div className="flex items-center space-x-3">
-                          <Shield className="h-4 w-4 text-primary" />
+                          <Shield className="h-5 w-5 text-primary" />
                           <span className="text-foreground">{visaRequirements.message}</span>
                         </div>
                       )}
@@ -304,13 +376,13 @@ export default function HomePage() {
                       {simulatorData.visaRequired && (
                         <>
                           <div className="flex items-center space-x-3">
-                            <CreditCard className="h-4 w-4 text-primary" />
+                            <CreditCard className="h-5 w-5 text-primary" />
                             <span className="text-xl font-bold text-foreground">
                               {simulatorData.cost}€
                             </span>
                           </div>
                           <div className="flex items-center space-x-3">
-                            <Clock className="h-4 w-4 text-primary" />
+                            <Clock className="h-5 w-5 text-primary" />
                             <span className="text-foreground">{simulatorData.duration}</span>
                           </div>
                         </>
@@ -318,7 +390,7 @@ export default function HomePage() {
 
                       <Button
                         asChild
-                        className="w-full mt-6 btn-primary"
+                        className="w-full mt-6"
                       >
                         <Link href={`/countries/${selectedDestination.code.toLowerCase()}`}>
                           {simulatorData.visaRequired ? 'Commencer ma demande' : 'Découvrir la destination'}
@@ -341,8 +413,8 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="section-padding">
-        <div className="container-max">
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
               Ce que disent nos utilisateurs
@@ -376,9 +448,14 @@ export default function HomePage() {
                   "{testimonial.text}"
                 </p>
                 
-                <Badge variant="outline" className="text-xs">
-                  Visa {testimonial.destination}
-                </Badge>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">
+                    Visa {testimonial.destination}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {testimonial.status}
+                  </Badge>
+                </div>
               </div>
             ))}
           </div>
@@ -386,8 +463,8 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="section-padding bg-primary text-primary-foreground">
-        <div className="container-max text-center">
+      <section className="py-16 bg-primary text-primary-foreground">
+        <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">
             Prêt à partir à l'aventure ?
           </h2>
@@ -403,7 +480,7 @@ export default function HomePage() {
             >
               <Link href="/countries">
                 Commencer maintenant
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button

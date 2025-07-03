@@ -1,0 +1,322 @@
+{
+  "stepsByStatus": {
+    "student": [
+      {
+        "id": 1,
+        "title": "Recherche d'université",
+        "description": "Trouvez et choisissez votre université",
+        "icon": "GraduationCap",
+        "tasks": [
+          "Rechercher les universités dans votre domaine d'études",
+          "Vérifier les conditions d'admission et prérequis",
+          "Comparer les programmes, frais de scolarité et bourses",
+          "Choisir 3-5 universités cibles",
+          "Vérifier les dates limites d'admission"
+        ],
+        "documents": [
+          "Liste des universités sélectionnées",
+          "Brochures et informations des programmes",
+          "Calendrier des admissions"
+        ],
+        "isRequired": true,
+        "estimatedDuration": "2-4 semaines",
+        "tips": [
+          "Commencez vos recherches 12-18 mois avant la rentrée",
+          "Consultez les classements universitaires internationaux",
+          "Contactez les services d'admission pour des questions spécifiques"
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Tests de langue",
+        "description": "Passez les tests de langue requis",
+        "icon": "MessageCircle",
+        "tasks": [
+          "Identifier le test requis (IELTS, TOEFL, TEF, TCF)",
+          "S'inscrire au test dans un centre agréé",
+          "Préparer l'examen (cours, livres, tests blancs)",
+          "Passer le test officiel",
+          "Obtenir les résultats dans les délais"
+        ],
+        "documents": [
+          "Certificat de test de langue officiel",
+          "Relevé de notes détaillé"
+        ],
+        "isRequired": true,
+        "estimatedDuration": "4-8 semaines",
+        "tips": [
+          "Les résultats sont valables 2 ans généralement",
+          "Prévoyez une session de rattrapage si nécessaire",
+          "Vérifiez les scores minimum requis par université"
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Dossier d'admission",
+        "description": "Constituez et soumettez votre dossier",
+        "icon": "FileText",
+        "tasks": [
+          "Rassembler tous les documents académiques",
+          "Faire traduire et certifier les diplômes",
+          "Rédiger la lettre de motivation",
+          "Obtenir les lettres de recommandation",
+          "Soumettre les candidatures en ligne"
+        ],
+        "documents": [
+          "Diplômes traduits et certifiés",
+          "Relevés de notes officiels",
+          "Lettre de motivation",
+          "Lettres de recommandation",
+          "CV académique",
+          "Portfolio (si requis)"
+        ],
+        "isRequired": true,
+        "estimatedDuration": "4-6 semaines",
+        "tips": [
+          "Respectez scrupuleusement les dates limites",
+          "Personnalisez chaque candidature",
+          "Gardez des copies de tous les documents"
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Lettre d'admission",
+        "description": "Obtenez votre lettre d'acceptation",
+        "icon": "Star",
+        "tasks": [
+          "Attendre les réponses des universités",
+          "Comparer les offres reçues",
+          "Accepter l'offre choisie",
+          "Payer les frais de confirmation",
+          "Obtenir la lettre d'admission officielle"
+        ],
+        "documents": [
+          "Lettre d'admission officielle",
+          "Preuve de paiement des frais",
+          "Conditions d'admission"
+        ],
+        "isRequired": true,
+        "estimatedDuration": "2-12 semaines",
+        "tips": [
+          "Répondez rapidement aux offres d'admission",
+          "Négociez les bourses si possible",
+          "Préparez un plan B avec plusieurs acceptations"
+        ]
+      }
+    ],
+    "worker": [
+      {
+        "id": 1,
+        "title": "Recherche d'emploi",
+        "description": "Trouvez un employeur sponsor",
+        "icon": "Briefcase",
+        "tasks": [
+          "Adapter votre CV au marché local",
+          "Rechercher des offres d'emploi ciblées",
+          "Postuler aux offres pertinentes",
+          "Préparer les entretiens d'embauche",
+          "Négocier et obtenir une offre d'emploi"
+        ],
+        "documents": [
+          "CV adapté au marché local",
+          "Lettre de motivation",
+          "Offre d'emploi signée",
+          "Contrat de travail"
+        ],
+        "isRequired": true,
+        "estimatedDuration": "4-12 semaines",
+        "tips": [
+          "Utilisez les plateformes d'emploi locales",
+          "Participez aux salons de l'emploi",
+          "Développez votre réseau professionnel"
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Validation des compétences",
+        "description": "Faites reconnaître vos qualifications",
+        "icon": "Award",
+        "tasks": [
+          "Évaluation des diplômes étrangers",
+          "Test de compétences professionnelles si requis",
+          "Obtenir les certifications professionnelles locales",
+          "Validation de l'expérience professionnelle"
+        ],
+        "documents": [
+          "Diplômes traduits et certifiés",
+          "Certificats professionnels",
+          "Attestations d'expérience de travail",
+          "Évaluation des compétences"
+        ],
+        "isRequired": true,
+        "estimatedDuration": "2-8 semaines",
+        "tips": [
+          "Commencez les démarches avant la recherche d'emploi",
+          "Contactez les ordres professionnels si nécessaire",
+          "Préparez-vous aux examens de certification"
+        ]
+      }
+    ],
+    "resident": [
+      {
+        "id": 1,
+        "title": "Préparation du dossier",
+        "description": "Rassemblez les documents de résidence",
+        "icon": "Home",
+        "tasks": [
+          "Preuves de relation familiale ou conjugale",
+          "Justificatifs financiers du sponsor",
+          "Obtenir le casier judiciaire",
+          "Passer l'examen médical requis",
+          "Rassembler les preuves de liens avec le pays"
+        ],
+        "documents": [
+          "Acte de mariage ou certificat de partenariat",
+          "Preuves de relation (photos, correspondances)",
+          "Justificatifs financiers du sponsor",
+          "Casier judiciaire apostillé",
+          "Certificat médical officiel",
+          "Preuves d'intégration (langue, emploi)"
+        ],
+        "isRequired": true,
+        "estimatedDuration": "6-12 semaines",
+        "tips": [
+          "Tous les documents doivent être récents (moins de 6 mois)",
+          "Faites traduire tous les documents par un traducteur assermenté",
+          "Préparez des preuves solides de votre relation"
+        ]
+      }
+    ],
+    "tourist": [
+      {
+        "id": 1,
+        "title": "Planification du voyage",
+        "description": "Organisez votre séjour touristique",
+        "icon": "MapPin",
+        "tasks": [
+          "Réserver l'hébergement pour tout le séjour",
+          "Acheter les billets d'avion aller-retour",
+          "Souscrire une assurance voyage complète",
+          "Planifier l'itinéraire détaillé",
+          "Préparer le budget de voyage"
+        ],
+        "documents": [
+          "Réservations d'hôtel confirmées",
+          "Billets d'avion aller-retour",
+          "Assurance voyage",
+          "Itinéraire de voyage",
+          "Justificatifs financiers"
+        ],
+        "isRequired": true,
+        "estimatedDuration": "1-2 semaines",
+        "tips": [
+          "Réservez des hébergements annulables",
+          "Vérifiez la couverture de votre assurance",
+          "Gardez des preuves de fonds suffisants"
+        ]
+      }
+    ]
+  },
+  "commonSteps": {
+    "languageTest": {
+      "id": "lang",
+      "title": "Test de langue",
+      "description": "Passez le test de langue officiel requis",
+      "icon": "MessageCircle",
+      "tasks": [
+        "S'inscrire au test requis (IELTS/TEF/TCF/DELE)",
+        "Préparer l'examen avec des cours ou manuels",
+        "Passer le test dans un centre agréé",
+        "Obtenir les résultats officiels"
+      ],
+      "documents": [
+        "Certificat de langue officiel",
+        "Relevé de notes détaillé"
+      ],
+      "isRequired": true,
+      "estimatedDuration": "3-6 semaines",
+      "requiredForCountries": ["CA", "AU", "NZ", "GB", "FR"],
+      "requiredForStatus": ["worker", "student", "resident"]
+    },
+    "visaDocuments": {
+      "id": "docs",
+      "title": "Documents visa",
+      "description": "Rassemblez tous les documents requis pour le visa",
+      "icon": "FileText",
+      "tasks": [
+        "Photos d'identité au format requis",
+        "Formulaire de demande complété et signé",
+        "Justificatifs financiers récents",
+        "Documents spécifiques au statut",
+        "Assurance voyage ou santé"
+      ],
+      "documents": [
+        "Passeport valide (6 mois minimum)",
+        "Photos d'identité conformes",
+        "Formulaire de demande",
+        "Justificatifs financiers",
+        "Assurance voyage/santé"
+      ],
+      "isRequired": true,
+      "estimatedDuration": "1-2 semaines"
+    },
+    "visaSubmission": {
+      "id": "submit",
+      "title": "Soumission visa",
+      "description": "Déposez votre demande de visa",
+      "icon": "Send",
+      "tasks": [
+        "Prendre rendez-vous au consulat ou centre de visa",
+        "Préparer le dossier physique complet",
+        "Payer les frais de visa et de service",
+        "Soumettre la demande et documents",
+        "Obtenir le récépissé de dépôt"
+      ],
+      "isRequired": true,
+      "estimatedDuration": "1 jour"
+    },
+    "visaTracking": {
+      "id": "track",
+      "title": "Suivi et réception",
+      "description": "Suivez votre demande jusqu'à l'obtention du visa",
+      "icon": "Clock",
+      "tasks": [
+        "Vérifier régulièrement le statut en ligne",
+        "Attendre la décision des autorités",
+        "Récupérer le passeport avec le visa",
+        "Vérifier toutes les informations du visa",
+        "Préparer le voyage final"
+      ],
+      "isRequired": true,
+      "estimatedDuration": "Variable selon le pays"
+    }
+  },
+  "countrySpecificRequirements": {
+    "CA": {
+      "languageTest": true,
+      "medicalExam": true,
+      "biometrics": true,
+      "additionalDocs": ["Certificat de police", "Preuve de fonds"]
+    },
+    "AU": {
+      "languageTest": true,
+      "medicalExam": true,
+      "skillsAssessment": true,
+      "additionalDocs": ["Évaluation des compétences"]
+    },
+    "US": {
+      "interview": true,
+      "biometrics": true,
+      "additionalDocs": ["Formulaire DS-160", "Preuve de liens avec le pays d'origine"]
+    },
+    "GB": {
+      "languageTest": true,
+      "biometrics": true,
+      "additionalDocs": ["Certificat de tuberculose"]
+    },
+    "FR": {
+      "languageTest": false,
+      "additionalDocs": ["Attestation d'hébergement"]
+    }
+  }
+}

@@ -119,7 +119,7 @@ html {
 
 /* Professional card style */
 .professional-card {
-  @apply bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200;
+  @apply bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
 }
 
 /* Professional button styles */
@@ -140,11 +140,142 @@ html {
   @apply max-w-7xl mx-auto;
 }
 
-/* Reduced animations */
+/* Subtle animations */
 .subtle-hover {
   @apply transition-all duration-200 ease-in-out;
 }
 
 .subtle-hover:hover {
   @apply transform translate-y-[-2px];
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Glass effect for modern UI */
+.glass-effect {
+  @apply bg-background/80 backdrop-blur-sm border border-border/50;
+}
+
+/* Preserve 3D for animations */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Professional spacing system */
+.space-y-8 > * + * {
+  margin-top: 2rem;
+}
+
+.space-y-12 > * + * {
+  margin-top: 3rem;
+}
+
+.space-y-16 > * + * {
+  margin-top: 4rem;
+}
+
+/* Responsive text sizes */
+@media (max-width: 640px) {
+  .text-4xl {
+    @apply text-3xl;
+  }
+  
+  .text-5xl {
+    @apply text-4xl;
+  }
+  
+  .text-6xl {
+    @apply text-5xl;
+  }
+}
+
+/* Professional form styles */
+.form-group {
+  @apply space-y-2;
+}
+
+.form-label {
+  @apply text-sm font-medium text-foreground;
+}
+
+.form-input {
+  @apply w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent;
+}
+
+/* Status indicators */
+.status-online {
+  @apply bg-green-500;
+}
+
+.status-offline {
+  @apply bg-red-500;
+}
+
+.status-pending {
+  @apply bg-yellow-500;
+}
+
+/* Loading states */
+.loading-skeleton {
+  @apply animate-pulse bg-muted rounded;
+}
+
+/* Professional shadows */
+.shadow-professional {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.shadow-professional-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .professional-card {
+    @apply border-2;
+  }
+  
+  .btn-primary {
+    @apply border-2 border-primary-foreground;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-break {
+    page-break-before: always;
+  }
 }
