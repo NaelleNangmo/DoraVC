@@ -23,11 +23,6 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
   
@@ -51,11 +46,6 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 94.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
   }
 }
 
@@ -63,18 +53,71 @@
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  html {
+    scroll-behavior: smooth;
   }
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+@layer components {
+  .professional-card {
+    @apply bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors duration-200;
+  }
+
+  .glass-effect {
+    @apply bg-background/80 backdrop-blur-sm border border-border/50;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .subtle-hover {
+    @apply transition-all duration-200 ease-in-out hover:translate-y-[-2px];
+  }
 }
 
-/* Custom scrollbar */
+@layer utilities {
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -101,138 +144,6 @@ html {
 .focus-visible:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
-}
-
-/* Professional card style */
-.professional-card {
-  @apply bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
-}
-
-/* Professional button styles */
-.btn-primary {
-  @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200;
-}
-
-.btn-secondary {
-  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors duration-200;
-}
-
-/* Professional layout spacing */
-.section-padding {
-  @apply py-12 px-4;
-}
-
-.container-max {
-  @apply max-w-7xl mx-auto;
-}
-
-/* Subtle animations */
-.subtle-hover {
-  @apply transition-all duration-200 ease-in-out;
-}
-
-.subtle-hover:hover {
-  @apply transform translate-y-[-2px];
-}
-
-/* Line clamp utilities */
-.line-clamp-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-}
-
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.line-clamp-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-/* Glass effect for modern UI */
-.glass-effect {
-  @apply bg-background/80 backdrop-blur-sm border border-border/50;
-}
-
-/* Preserve 3D for animations */
-.preserve-3d {
-  transform-style: preserve-3d;
-}
-
-/* Professional spacing system */
-.space-y-8 > * + * {
-  margin-top: 2rem;
-}
-
-.space-y-12 > * + * {
-  margin-top: 3rem;
-}
-
-.space-y-16 > * + * {
-  margin-top: 4rem;
-}
-
-/* Responsive text sizes */
-@media (max-width: 640px) {
-  .text-4xl {
-    @apply text-3xl;
-  }
-  
-  .text-5xl {
-    @apply text-4xl;
-  }
-  
-  .text-6xl {
-    @apply text-5xl;
-  }
-}
-
-/* Professional form styles */
-.form-group {
-  @apply space-y-2;
-}
-
-.form-label {
-  @apply text-sm font-medium text-foreground;
-}
-
-.form-input {
-  @apply w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent;
-}
-
-/* Status indicators */
-.status-online {
-  @apply bg-green-500;
-}
-
-.status-offline {
-  @apply bg-red-500;
-}
-
-.status-pending {
-  @apply bg-yellow-500;
-}
-
-/* Loading states */
-.loading-skeleton {
-  @apply animate-pulse bg-muted rounded;
-}
-
-/* Professional shadows */
-.shadow-professional {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-}
-
-.shadow-professional-lg {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Accessibility improvements */

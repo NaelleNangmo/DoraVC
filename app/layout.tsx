@@ -7,13 +7,18 @@ import { Footer } from '@/components/layout/Footer';
 import { ChatBot } from '@/components/chatbot/ChatBot';
 import { ConnectionStatus } from '@/components/ui/connection-status';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: 'DORA - Digital Online Resource for Adventurers',
   description: 'Votre guide digital pour simplifier les démarches de visa et découvrir le monde.',
   keywords: 'visa, voyage, démarches, documents, conseils, assistant',
   authors: [{ name: 'DORA Team' }],
+  viewport: 'width=device-width, initial-scale=1',
   openGraph: {
     title: 'DORA - Digital Online Resource for Adventurers',
     description: 'Simplifiez vos démarches de visa avec DORA',
@@ -21,6 +26,10 @@ export const metadata: Metadata = {
     siteName: 'DORA',
     locale: 'fr_FR',
     type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
@@ -30,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" suppressHydrationWarning className="scroll-smooth">
+    <html lang="fr" suppressHydrationWarning className={`scroll-smooth ${inter.variable}`}>
       <body className={`${inter.className} antialiased`}>
         <div className="min-h-screen flex flex-col bg-background text-foreground">
           <Header />

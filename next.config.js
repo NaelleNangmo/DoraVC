@@ -7,18 +7,33 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: { 
-    unoptimized: true 
+    unoptimized: true,
+    domains: ['images.unsplash.com', 'via.placeholder.com']
   },
-  trailingSlash: true,
-  env: {
-    CUSTOM_KEY: 'my-value',
-  },
+  trailingSlash: false,
   poweredByHeader: false,
   reactStrictMode: true,
   compress: true,
   generateEtags: false,
-  httpAgentOptions: {
-    keepAlive: true,
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion']
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack']
+    });
+
+    return config;
   },
 };
 
