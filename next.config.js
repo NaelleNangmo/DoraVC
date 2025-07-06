@@ -10,23 +10,23 @@ const nextConfig = {
     unoptimized: true 
   },
   trailingSlash: true,
+  // Désactiver SWC complètement pour éviter les erreurs sur Windows
   swcMinify: false,
   experimental: {
     esmExternals: false,
     serverComponentsExternalPackages: [],
+    // Désactiver SWC
+    forceSwcTransforms: false,
   },
+  // Configuration webpack pour Windows
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    // Désactiver SWC et utiliser Babel à la place
-    config.module.rules.push({
-      test: /\.(js|jsx|ts|tsx)$/,
-      exclude: /node_modules/,
-      use: {
-        loader: 'babel-loader',
-        options: {
-          presets: ['next/babel'],
-        },
-      },
-    });
+    // Configuration spécifique pour Windows
+    if (process.platform === 'win32') {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      };
+    }
 
     // Fallbacks pour les modules Node.js
     if (!isServer) {
@@ -52,6 +52,9 @@ const nextConfig = {
       ...config.resolve.alias,
       '@': require('path').resolve(__dirname),
     };
+
+    // Configuration pour éviter les erreurs de cache
+    config.cache = false;
 
     return config;
   },
