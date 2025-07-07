@@ -4,15 +4,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wifi, WifiOff, Database, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { apiClient } from '@/lib/api';
 
 export function ConnectionStatus() {
   const [isOnline, setIsOnline] = useState(true);
   const [showStatus, setShowStatus] = useState(false);
 
   useEffect(() => {
-    const checkConnection = async () => {
-      const status = apiClient.isOnline();
+    const checkConnection = () => {
+      const status = navigator.onLine;
       setIsOnline(status);
       
       // Afficher le statut pendant 3 secondes si hors ligne
@@ -22,11 +21,17 @@ export function ConnectionStatus() {
       }
     };
 
-    // Vérifier la connexion toutes les 30 secondes
-    const interval = setInterval(checkConnection, 30000);
-    checkConnection(); // Vérification initiale
+    // Vérifier la connexion au chargement
+    checkConnection();
 
-    return () => clearInterval(interval);
+    // Écouter les changements de connexion
+    window.addEventListener('online', checkConnection);
+    window.addEventListener('offline', checkConnection);
+
+    return () => {
+      window.removeEventListener('online', checkConnection);
+      window.removeEventListener('offline', checkConnection);
+    };
   }, []);
 
   if (!showStatus && isOnline) return null;
@@ -46,12 +51,12 @@ export function ConnectionStatus() {
           {isOnline ? (
             <>
               <Database className="h-4 w-4" />
-              <span>Base de données connectée</span>
+              <span>Connecté</span>
             </>
           ) : (
             <>
               <AlertCircle className="h-4 w-4" />
-              <span>Mode hors ligne - Données locales</span>
+              <span>Mode hors ligne</span>
             </>
           )}
         </Badge>

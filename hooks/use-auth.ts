@@ -1,17 +1,31 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCurrentUser, setCurrentUser, logout as localLogout, type User } from '@/lib/auth';
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'user' | 'admin';
+  avatar?: string;
+  joinedDate?: string;
+  preferences?: {
+    language: string;
+    currency: string;
+  };
+}
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
+    const initAuth = () => {
       try {
-        const localUser = getCurrentUser();
-        setUser(localUser);
+        const userData = localStorage.getItem('currentUser');
+        if (userData) {
+          setUser(JSON.parse(userData));
+        }
       } catch (error) {
         console.error('Erreur lors de l\'initialisation de l\'auth:', error);
       } finally {
@@ -24,12 +38,14 @@ export const useAuth = () => {
 
   const login = (userData: User) => {
     setUser(userData);
-    setCurrentUser(userData);
+    localStorage.setItem('currentUser', JSON.stringify(userData));
   };
 
   const logout = () => {
-    localLogout();
     setUser(null);
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('visaProgress');
+    localStorage.removeItem('chatHistory');
   };
 
   return {

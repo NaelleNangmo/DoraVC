@@ -4,10 +4,36 @@ import { useState, useEffect } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useTheme } from '@/hooks/use-theme';
+
+type Theme = 'light' | 'dark' | 'system';
 
 export function ThemeToggle() {
-  const { theme, changeTheme, mounted } = useTheme();
+  const [theme, setTheme] = useState<Theme>('light');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const savedTheme = (localStorage.getItem('theme') as Theme) || 'light';
+    setTheme(savedTheme);
+    applyTheme(savedTheme);
+  }, []);
+
+  const applyTheme = (newTheme: Theme) => {
+    const root = window.document.documentElement;
+    
+    if (newTheme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      root.classList.toggle('dark', systemTheme === 'dark');
+    } else {
+      root.classList.toggle('dark', newTheme === 'dark');
+    }
+  };
+
+  const changeTheme = (newTheme: Theme) => {
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    applyTheme(newTheme);
+  };
 
   if (!mounted) {
     return (

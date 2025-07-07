@@ -1,12 +1,26 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useLanguage } from '@/hooks/use-language';
+
+type Language = 'fr' | 'en' | 'es';
 
 export function LanguageToggle() {
-  const { language, changeLanguage, mounted } = useLanguage();
+  const [language, setLanguage] = useState<Language>('fr');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const savedLanguage = (localStorage.getItem('language') as Language) || 'fr';
+    setLanguage(savedLanguage);
+  }, []);
+
+  const changeLanguage = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+    localStorage.setItem('language', newLanguage);
+  };
 
   if (!mounted) {
     return (
