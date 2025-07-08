@@ -1,727 +1,509 @@
-## 🔧 SPÉCIFICATIONS BACKEND DÉTAILLÉES
+# DORA - Digital Online Resource for Adventurers
 
-### Structure de Base de Données PostgreSQL
+## 📋 Description du Projet
 
-#### Table: users
+DORA est une plateforme web complète dédiée à la simplification des démarches de visa et à l'accompagnement des voyageurs dans leurs aventures internationales. L'application combine un frontend moderne en Next.js avec un backend robuste en Node.js/PostgreSQL, offrant une expérience utilisateur exceptionnelle avec un système de visa intelligent basé sur la nationalité.
+
+## 🌍 SYSTÈME DE VISA BASÉ SUR LA NATIONALITÉ
+
+### Principe Fondamental
+Le besoin de visa dépend entièrement de la **nationalité du voyageur** et du **pays de destination**. Chaque passeport offre un accès différent aux pays du monde :
+
+- **Passeport Français** : Accès à ~190 pays sans visa (Japon, Mexique, Maroc, Brésil, etc.)
+- **Passeport Japonais** : Accès à ~193 pays sans visa (le plus puissant)
+- **Passeport Allemand** : Accès à ~190 pays sans visa
+- **Passeport Sénégalais** : Accès à ~60 pays sans visa
+- **Passeport Malien** : Accès à ~58 pays sans visa
+
+### Structure de Base de Données pour le Système de Visa
+
+#### Table: visa_requirements
 ```sql
-CREATE TABLE users (
+CREATE TABLE visa_requirements (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-    avatar TEXT,
-    nationality VARCHAR(3), -- Code ISO pays
-    current_country VARCHAR(3), -- Code ISO pays
-    status VARCHAR(20) DEFAULT 'tourist' CHECK (status IN ('tourist', 'worker', 'student', 'resident')),
-    preferences JSONB DEFAULT '{}',
-    profile JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP,
-    is_active BOOLEAN DEFAULT true
+    origin_country_code VARCHAR(3) NOT NULL, -- Code ISO du pays d'origine
+    destination_country_code VARCHAR(3) NOT NULL, -- Code ISO du pays de destination
+    visa_required BOOLEAN NOT NULL DEFAULT true,
+    visa_type VARCHAR(50), -- tourist, business, transit, etc.
+    max_stay_days INTEGER, -- Durée maximale de séjour sans visa
+    processing_time VARCHAR(50), -- Délai si visa requis
+    cost_usd DECIMAL(10,2), -- Coût en USD
+    requirements TEXT[], -- Exigences spécifiques
+    notes TEXT, -- Notes additionnelles
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    UNIQUE(origin_country_code, destination_country_code, visa_type)
 );
 
--- Index pour optimiser les requêtes
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_status ON users(status);
+-- Index pour optimiser les requêtes de visa
+CREATE INDEX idx_visa_req_origin_dest ON visa_requirements(origin_country_code, destination_country_code);
+CREATE INDEX idx_visa_req_visa_required ON visa_requirements(visa_required);
 ```
 
-#### Table: countries
+#### Table: bilateral_agreements
 ```sql
-CREATE TABLE countries (
+CREATE TABLE bilateral_agreements (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    code VARCHAR(3) UNIQUE NOT NULL, -- Code ISO
-    flag VARCHAR(10) NOT NULL,
-    continent VARCHAR(50) NOT NULL,
-    capital VARCHAR(255) NOT NULL,
-    currency VARCHAR(3) NOT NULL,
-    language VARCHAR(255) NOT NULL,
-    image TEXT NOT NULL,
-    description TEXT NOT NULL,
-    visa_required BOOLEAN DEFAULT true,
-    processing_time VARCHAR(50) NOT NULL,
-    average_cost INTEGER DEFAULT 0,
-    popular_season VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    country_a_code VARCHAR(3) NOT NULL,
+    country_b_code VARCHAR(3) NOT NULL,
+    agreement_type VARCHAR(50) NOT NULL, -- visa_exemption, reciprocal_visa, etc.
+    max_stay_days INTEGER,
+    conditions TEXT[], -- Conditions spéciales
+    valid_from DATE,
+    valid_until DATE,
+    is_active BOOLEAN DEFAULT true,
+    
+    UNIQUE(country_a_code, country_b_code, agreement_type)
 );
 
-CREATE INDEX idx_countries_code ON countries(code);
-CREATE INDEX idx_countries_continent ON countries(continent);
-CREATE INDEX idx_countries_visa_required ON countries(visa_required);
+-- Index pour les accords bilatéraux
+CREATE INDEX idx_bilateral_countries ON bilateral_agreements(country_a_code, country_b_code);
 ```
 
-#### Table: community_posts
+#### Table: passport_rankings
 ```sql
-CREATE TABLE community_posts (
+CREATE TABLE passport_rankings (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    country_id INTEGER REFERENCES countries(id) ON DELETE SET NULL,
-    title VARCHAR(500) NOT NULL,
-    content TEXT NOT NULL,
-    image TEXT,
-    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
-    tags JSONB DEFAULT '[]',
-    likes INTEGER DEFAULT 0,
-    dislikes INTEGER DEFAULT 0,
-    comments_count INTEGER DEFAULT 0,
-    views INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    approved_at TIMESTAMP,
-    approved_by INTEGER REFERENCES users(id) ON DELETE SET NULL
+    country_code VARCHAR(3) UNIQUE NOT NULL,
+    visa_free_destinations INTEGER NOT NULL, -- Nombre de pays accessibles sans visa
+    visa_on_arrival_destinations INTEGER DEFAULT 0,
+    total_destinations INTEGER NOT NULL,
+    global_rank INTEGER,
+    regional_rank INTEGER,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_posts_user_id ON community_posts(user_id);
-CREATE INDEX idx_posts_country_id ON community_posts(country_id);
-CREATE INDEX idx_posts_status ON community_posts(status);
-CREATE INDEX idx_posts_created_at ON community_posts(created_at);
+CREATE INDEX idx_passport_rank ON passport_rankings(global_rank);
 ```
 
-#### Table: post_interactions
-```sql
-CREATE TABLE post_interactions (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    post_id INTEGER REFERENCES community_posts(id) ON DELETE CASCADE,
-    interaction_type VARCHAR(20) CHECK (interaction_type IN ('like', 'dislike')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, post_id)
-);
+### API Endpoints pour le Système de Visa
 
-CREATE INDEX idx_interactions_user_post ON post_interactions(user_id, post_id);
-```
+#### 🛂 Visa Requirements Endpoints
 
-#### Table: visa_applications
-```sql
-CREATE TABLE visa_applications (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    country_id INTEGER REFERENCES countries(id) ON DELETE CASCADE,
-    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'submitted', 'processing', 'approved', 'rejected')),
-    current_step INTEGER DEFAULT 1,
-    total_steps INTEGER DEFAULT 5,
-    form_data JSONB DEFAULT '{}',
-    documents JSONB DEFAULT '[]',
-    notes TEXT,
-    submitted_at TIMESTAMP,
-    expected_decision TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_visa_apps_user_id ON visa_applications(user_id);
-CREATE INDEX idx_visa_apps_status ON visa_applications(status);
-```
-
-#### Table: user_profiles
-```sql
-CREATE TABLE user_profiles (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    visa_applications JSONB DEFAULT '[]',
-    saved_places JSONB DEFAULT '[]',
-    integration_progress JSONB DEFAULT '{}',
-    travel_history JSONB DEFAULT '[]',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_profiles_user_id ON user_profiles(user_id);
-```
-
-#### Table: hotels
-```sql
-CREATE TABLE hotels (
-    id SERIAL PRIMARY KEY,
-    country_id INTEGER REFERENCES countries(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    currency VARCHAR(3) NOT NULL,
-    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
-    image TEXT NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    amenities JSONB DEFAULT '[]',
-    description TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_hotels_country_id ON hotels(country_id);
-CREATE INDEX idx_hotels_rating ON hotels(rating);
-```
-
-#### Table: restaurants
-```sql
-CREATE TABLE restaurants (
-    id SERIAL PRIMARY KEY,
-    country_id INTEGER REFERENCES countries(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    cuisine VARCHAR(100) NOT NULL,
-    price_range VARCHAR(10) NOT NULL,
-    rating DECIMAL(2,1) NOT NULL,
-    image TEXT NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    average_price DECIMAL(10,2) NOT NULL,
-    currency VARCHAR(3) NOT NULL,
-    description TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_restaurants_country_id ON restaurants(country_id);
-CREATE INDEX idx_restaurants_cuisine ON restaurants(cuisine);
-```
-
-#### Table: tourist_sites
-```sql
-CREATE TABLE tourist_sites (
-    id SERIAL PRIMARY KEY,
-    country_id INTEGER REFERENCES countries(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    category VARCHAR(100) NOT NULL,
-    image TEXT NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
-    visit_duration VARCHAR(50) NOT NULL,
-    best_time VARCHAR(100) NOT NULL,
-    entry_fee DECIMAL(10,2) DEFAULT 0,
-    currency VARCHAR(3) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_sites_country_id ON tourist_sites(country_id);
-CREATE INDEX idx_sites_category ON tourist_sites(category);
-```
-
-### API Endpoints Détaillés
-
-#### 🔐 Authentication Endpoints
-
-**POST /api/auth/register**
-```json
-{
-  "name": "string",
-  "email": "string",
-  "password": "string",
-  "nationality": "string (optional)",
-  "status": "tourist|worker|student|resident (optional)"
-}
-```
-Response: `{ "success": true, "data": { "user": UserObject, "token": "jwt_token" } }`
-
-**POST /api/auth/login**
-```json
-{
-  "email": "string",
-  "password": "string"
-}
-```
-Response: `{ "success": true, "data": { "user": UserObject, "token": "jwt_token" } }`
-
-**POST /api/auth/logout**
-Headers: `Authorization: Bearer <token>`
-Response: `{ "success": true, "message": "Logged out successfully" }`
-
-**GET /api/auth/me**
-Headers: `Authorization: Bearer <token>`
-Response: `{ "success": true, "data": UserObject }`
-
-#### 👤 Users Endpoints
-
-**GET /api/users**
-Headers: `Authorization: Bearer <admin_token>`
-Query: `?page=1&limit=10&role=user&status=active`
-Response: `{ "success": true, "data": UserObject[], "pagination": PaginationObject }`
-
-**GET /api/users/:id**
-Headers: `Authorization: Bearer <token>`
-Response: `{ "success": true, "data": UserObject }`
-
-**PUT /api/users/:id**
-Headers: `Authorization: Bearer <token>`
-```json
-{
-  "name": "string (optional)",
-  "avatar": "string (optional)",
-  "status": "tourist|worker|student|resident (optional)",
-  "preferences": "object (optional)",
-  "profile": "object (optional)"
-}
-```
-Response: `{ "success": true, "data": UserObject }`
-
-**DELETE /api/users/:id**
-Headers: `Authorization: Bearer <admin_token>`
-Response: `{ "success": true, "message": "User deleted successfully" }`
-
-#### 🌍 Countries Endpoints
-
-**GET /api/countries**
-Query: `?continent=Europe&visa_required=true&search=france&sort=name&order=asc&page=1&limit=20`
-Response: `{ "success": true, "data": CountryObject[], "pagination": PaginationObject }`
-
-**GET /api/countries/:code**
-Response: `{ "success": true, "data": CountryObject }`
-
-**POST /api/countries**
-Headers: `Authorization: Bearer <admin_token>`
-```json
-{
-  "name": "string",
-  "code": "string",
-  "flag": "string",
-  "continent": "string",
-  "capital": "string",
-  "currency": "string",
-  "language": "string",
-  "image": "string",
-  "description": "string",
-  "visa_required": "boolean",
-  "processing_time": "string",
-  "average_cost": "number",
-  "popular_season": "string"
-}
-```
-Response: `{ "success": true, "data": CountryObject }`
-
-**PUT /api/countries/:id**
-Headers: `Authorization: Bearer <admin_token>`
-Response: `{ "success": true, "data": CountryObject }`
-
-**DELETE /api/countries/:id**
-Headers: `Authorization: Bearer <admin_token>`
-Response: `{ "success": true, "message": "Country deleted successfully" }`
-
-#### 💬 Community Endpoints
-
-**GET /api/community**
-Query: `?status=approved&country_id=1&user_id=1&sort=recent&page=1&limit=10`
-Response: `{ "success": true, "data": PostObject[], "pagination": PaginationObject }`
-
-**GET /api/community/:id**
-Response: `{ "success": true, "data": PostObject }`
-
-**POST /api/community**
-Headers: `Authorization: Bearer <token>`
-```json
-{
-  "country_id": "number (optional)",
-  "title": "string",
-  "content": "string",
-  "image": "string (optional)",
-  "rating": "number (1-5, optional)",
-  "tags": "string[]"
-}
-```
-Response: `{ "success": true, "data": PostObject }`
-
-**PATCH /api/community/:id/status**
-Headers: `Authorization: Bearer <admin_token>`
-```json
-{
-  "status": "approved|rejected"
-}
-```
-Response: `{ "success": true, "data": PostObject }`
-
-**PATCH /api/community/:id/likes**
-Headers: `Authorization: Bearer <token>`
-```json
-{
-  "likes": "number",
-  "dislikes": "number"
-}
-```
-Response: `{ "success": true, "data": PostObject }`
-
-**DELETE /api/community/:id**
-Headers: `Authorization: Bearer <token|admin_token>`
-Response: `{ "success": true, "message": "Post deleted successfully" }`
-
-#### 📋 Visa Applications Endpoints
-
-**GET /api/visa-applications**
-Headers: `Authorization: Bearer <token>`
-Query: `?status=processing&country_id=1`
-Response: `{ "success": true, "data": VisaApplicationObject[] }`
-
-**GET /api/visa-applications/:id**
-Headers: `Authorization: Bearer <token>`
-Response: `{ "success": true, "data": VisaApplicationObject }`
-
-**POST /api/visa-applications**
-Headers: `Authorization: Bearer <token>`
-```json
-{
-  "country_id": "number",
-  "status": "draft|submitted",
-  "current_step": "number",
-  "total_steps": "number",
-  "form_data": "object",
-  "documents": "array"
-}
-```
-Response: `{ "success": true, "data": VisaApplicationObject }`
-
-**PUT /api/visa-applications/:id**
-Headers: `Authorization: Bearer <token>`
-Response: `{ "success": true, "data": VisaApplicationObject }`
-
-#### 🏨 Hotels Endpoints
-
-**GET /api/hotels**
-Query: `?country_id=1&rating=4&price_min=50&price_max=200&page=1&limit=10`
-Response: `{ "success": true, "data": HotelObject[], "pagination": PaginationObject }`
-
-**GET /api/hotels/:id**
-Response: `{ "success": true, "data": HotelObject }`
-
-#### 🍽️ Restaurants Endpoints
-
-**GET /api/restaurants**
-Query: `?country_id=1&cuisine=french&rating=4&page=1&limit=10`
-Response: `{ "success": true, "data": RestaurantObject[], "pagination": PaginationObject }`
-
-**GET /api/restaurants/:id**
-Response: `{ "success": true, "data": RestaurantObject }`
-
-#### 🏛️ Tourist Sites Endpoints
-
-**GET /api/tourist-sites**
-Query: `?country_id=1&category=monument&page=1&limit=10`
-Response: `{ "success": true, "data": TouristSiteObject[], "pagination": PaginationObject }`
-
-**GET /api/tourist-sites/:id**
-Response: `{ "success": true, "data": TouristSiteObject }`
-
-#### 📊 Analytics Endpoints (Admin)
-
-**GET /api/analytics/dashboard**
-Headers: `Authorization: Bearer <admin_token>`
-Response: 
+**GET /api/visa-check**
+Query: `?origin=FR&destination=JP&visa_type=tourist`
 ```json
 {
   "success": true,
   "data": {
-    "users": {
-      "total": "number",
-      "new_this_month": "number",
-      "active": "number"
+    "origin_country": {
+      "code": "FR",
+      "name": "France",
+      "flag": "🇫🇷"
     },
-    "posts": {
-      "total": "number",
-      "pending": "number",
-      "approved": "number"
+    "destination_country": {
+      "code": "JP", 
+      "name": "Japon",
+      "flag": "🇯🇵"
     },
-    "countries": {
-      "total": "number",
-      "most_popular": "CountryObject[]"
-    },
-    "visa_applications": {
-      "total": "number",
-      "by_status": "object"
+    "visa_required": false,
+    "max_stay_days": 90,
+    "visa_type": "tourist",
+    "requirements": [
+      "Passeport valide minimum 6 mois",
+      "Billet de retour",
+      "Justificatifs financiers"
+    ],
+    "notes": "Exemption de visa pour séjours touristiques jusqu'à 90 jours",
+    "processing_time": null,
+    "cost_usd": 0,
+    "bilateral_agreement": {
+      "type": "visa_exemption",
+      "valid_until": "2025-12-31"
     }
   }
 }
 ```
 
-#### 🔍 Search Endpoints
-
-**GET /api/search**
-Query: `?q=canada&type=countries|posts|all&page=1&limit=10`
-Response: `{ "success": true, "data": SearchResultObject[], "pagination": PaginationObject }`
-
-#### 🏥 Health Check
-
-**GET /api/health**
-Response: 
+**GET /api/visa-free-destinations/:country_code**
 ```json
 {
   "success": true,
   "data": {
-    "status": "healthy",
-    "timestamp": "ISO_DATE",
-    "database": "connected",
-    "version": "1.0.0"
+    "country": {
+      "code": "FR",
+      "name": "France",
+      "passport_rank": 3
+    },
+    "visa_free_count": 190,
+    "visa_on_arrival_count": 15,
+    "total_accessible": 205,
+    "destinations": [
+      {
+        "country_code": "JP",
+        "country_name": "Japon",
+        "flag": "🇯🇵",
+        "max_stay_days": 90,
+        "continent": "Asie"
+      },
+      {
+        "country_code": "BR",
+        "country_name": "Brésil", 
+        "flag": "🇧🇷",
+        "max_stay_days": 90,
+        "continent": "Amérique du Sud"
+      }
+    ]
   }
 }
 ```
 
-### Modèles de Données (TypeScript Interfaces)
-
-#### UserObject
-```typescript
-interface UserObject {
-  id: number;
-  name: string;
-  email: string;
-  role: 'user' | 'admin';
-  avatar?: string;
-  nationality?: string;
-  current_country?: string;
-  status: 'tourist' | 'worker' | 'student' | 'resident';
-  preferences: {
-    language: string;
-    currency: string;
-    notifications: boolean;
-  };
-  profile: {
-    skills?: string[];
-    experience?: string;
-    field?: string;
-    interests?: string[];
-    travel_history?: string[];
-  };
-  created_at: string;
-  updated_at: string;
-  last_login?: string;
-  is_active: boolean;
-}
-```
-
-#### CountryObject
-```typescript
-interface CountryObject {
-  id: number;
-  name: string;
-  code: string;
-  flag: string;
-  continent: string;
-  capital: string;
-  currency: string;
-  language: string;
-  image: string;
-  description: string;
-  visa_required: boolean;
-  processing_time: string;
-  average_cost: number;
-  popular_season: string;
-  created_at: string;
-  updated_at: string;
-}
-```
-
-#### PostObject
-```typescript
-interface PostObject {
-  id: number;
-  user_id: number;
-  user_name: string;
-  user_avatar: string;
-  country_id?: number;
-  country_name?: string;
-  title: string;
-  content: string;
-  image?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  rating?: number;
-  tags: string[];
-  likes: number;
-  dislikes: number;
-  comments_count: number;
-  views: number;
-  created_at: string;
-  approved_at?: string;
-  user_liked?: boolean;
-  user_disliked?: boolean;
-}
-```
-
-### Configuration Serveur
-
-#### Variables d'Environnement (.env)
-```env
-# Base de données
-DATABASE_URL=postgresql://user:password@host:port/database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=dora_db
-DB_USER=dora_user
-DB_PASSWORD=secure_password
-
-# JWT
-JWT_SECRET=your-super-secret-jwt-key-here
-JWT_EXPIRES_IN=7d
-
-# Serveur
-NODE_ENV=development
-PORT=3001
-CORS_ORIGIN=http://localhost:3000
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# Upload
-MAX_FILE_SIZE=10485760
-UPLOAD_PATH=./uploads
-
-# APIs Externes
-GOOGLE_PLACES_API_KEY=your_key
-INDEED_API_KEY=your_key
-UNSPLASH_ACCESS_KEY=your_key
-```
-
-#### Structure des Dossiers Backend
-```
-backend/
-├── src/
-│   ├── config/
-│   │   ├── database.js
-│   │   ├── jwt.js
-│   │   └── cors.js
-│   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── usersController.js
-│   │   ├── countriesController.js
-│   │   ├── communityController.js
-│   │   ├── visaController.js
-│   │   └── analyticsController.js
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   ├── validation.js
-│   │   ├── rateLimiting.js
-│   │   └── errorHandler.js
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── Country.js
-│   │   ├── Post.js
-│   │   └── VisaApplication.js
-│   ├── routes/
-│   │   ├── auth.js
-│   │   ├── users.js
-│   │   ├── countries.js
-│   │   ├── community.js
-│   │   ├── visa.js
-│   │   └── analytics.js
-│   ├── services/
-│   │   ├── authService.js
-│   │   ├── emailService.js
-│   │   └── uploadService.js
-│   ├── utils/
-│   │   ├── validation.js
-│   │   ├── pagination.js
-│   │   └── helpers.js
-│   └── app.js
-├── migrations/
-├── seeds/
-├── tests/
-├── package.json
-└── server.js
-```
-
-### Sécurité et Validation
-
-#### Middleware d'Authentification
-```javascript
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (!token) {
-    return res.status(401).json({ success: false, message: 'Token manquant' });
+**GET /api/passport-power/:country_code**
+```json
+{
+  "success": true,
+  "data": {
+    "country": {
+      "code": "FR",
+      "name": "France",
+      "flag": "🇫🇷"
+    },
+    "global_rank": 3,
+    "regional_rank": 2,
+    "visa_free_destinations": 190,
+    "visa_on_arrival_destinations": 15,
+    "visa_required_destinations": 25,
+    "total_destinations": 230,
+    "power_score": 95.2,
+    "comparison": {
+      "better_than": 85.5,
+      "similar_passports": ["DE", "IT", "ES"],
+      "top_passports": ["JP", "SG", "DE"]
+    }
   }
-  
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ success: false, message: 'Token invalide' });
+}
+```
+
+**POST /api/visa-requirements** (Admin)
+Headers: `Authorization: Bearer <admin_token>`
+```json
+{
+  "origin_country_code": "SN",
+  "destination_country_code": "FR", 
+  "visa_required": false,
+  "visa_type": "tourist",
+  "max_stay_days": 90,
+  "requirements": ["Passeport valide", "Billet retour"],
+  "notes": "Accord de libre circulation CEDEAO"
+}
+```
+
+#### 🌍 Enhanced Countries Endpoints
+
+**GET /api/countries/:code/visa-info**
+Query: `?origin_country=FR`
+```json
+{
+  "success": true,
+  "data": {
+    "country": {
+      "code": "JP",
+      "name": "Japon",
+      "flag": "🇯🇵"
+    },
+    "visa_info": {
+      "visa_required": false,
+      "max_stay_days": 90,
+      "processing_time": null,
+      "cost_usd": 0,
+      "requirements": ["Passeport valide 6 mois", "Billet retour"],
+      "entry_points": ["Aéroports internationaux", "Ports maritimes"],
+      "restrictions": ["Pas d'activité rémunérée"],
+      "extensions_possible": true,
+      "multiple_entries": true
+    },
+    "travel_advisory": {
+      "level": "low",
+      "last_updated": "2024-01-15",
+      "notes": "Aucune restriction particulière"
     }
-    req.user = user;
-    next();
-  });
-};
+  }
+}
 ```
 
-#### Validation des Données
-```javascript
-const validatePost = [
-  body('title').isLength({ min: 5, max: 500 }).trim().escape(),
-  body('content').isLength({ min: 10, max: 5000 }).trim().escape(),
-  body('rating').optional().isInt({ min: 1, max: 5 }),
-  body('tags').optional().isArray({ max: 10 })
-];
-```
+### Logique Métier pour le Système de Visa
 
-#### Rate Limiting
-```javascript
-const rateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requêtes par IP
-  message: { success: false, message: 'Trop de requêtes' }
-});
-```
+#### Service: VisaRequirementService
+```typescript
+interface VisaCheckRequest {
+  originCountry: string;
+  destinationCountry: string;
+  visaType?: 'tourist' | 'business' | 'transit' | 'student' | 'work';
+  stayDuration?: number;
+}
 
-### Performance et Optimisation
+interface VisaCheckResponse {
+  visaRequired: boolean;
+  maxStayDays?: number;
+  processingTime?: string;
+  costUSD?: number;
+  requirements: string[];
+  bilateralAgreement?: {
+    type: string;
+    validUntil?: string;
+  };
+  notes?: string;
+}
 
-#### Pagination Standard
-```javascript
-const paginate = (page = 1, limit = 10) => {
-  const offset = (page - 1) * limit;
-  return { limit: parseInt(limit), offset };
-};
-```
-
-#### Cache Redis (optionnel)
-```javascript
-const redis = require('redis');
-const client = redis.createClient();
-
-const cacheMiddleware = (duration = 300) => {
-  return async (req, res, next) => {
-    const key = req.originalUrl;
-    const cached = await client.get(key);
+class VisaRequirementService {
+  async checkVisaRequirement(request: VisaCheckRequest): Promise<VisaCheckResponse> {
+    // 1. Vérifier les accords bilatéraux
+    const bilateralAgreement = await this.checkBilateralAgreement(
+      request.originCountry, 
+      request.destinationCountry
+    );
     
-    if (cached) {
-      return res.json(JSON.parse(cached));
+    if (bilateralAgreement && bilateralAgreement.isActive) {
+      return {
+        visaRequired: false,
+        maxStayDays: bilateralAgreement.maxStayDays,
+        requirements: bilateralAgreement.conditions,
+        bilateralAgreement: {
+          type: bilateralAgreement.agreementType,
+          validUntil: bilateralAgreement.validUntil
+        }
+      };
     }
     
-    res.sendResponse = res.json;
-    res.json = (body) => {
-      client.setex(key, duration, JSON.stringify(body));
-      res.sendResponse(body);
+    // 2. Vérifier les exigences de visa standard
+    const visaReq = await this.getVisaRequirement(
+      request.originCountry,
+      request.destinationCountry,
+      request.visaType || 'tourist'
+    );
+    
+    return {
+      visaRequired: visaReq.visaRequired,
+      maxStayDays: visaReq.maxStayDays,
+      processingTime: visaReq.processingTime,
+      costUSD: visaReq.costUSD,
+      requirements: visaReq.requirements,
+      notes: visaReq.notes
     };
+  }
+  
+  async getVisaFreeDestinations(countryCode: string): Promise<Country[]> {
+    // Retourne tous les pays accessibles sans visa
+    const query = `
+      SELECT DISTINCT d.* FROM countries d
+      JOIN visa_requirements vr ON d.code = vr.destination_country_code
+      WHERE vr.origin_country_code = $1 AND vr.visa_required = false
+      UNION
+      SELECT DISTINCT d.* FROM countries d
+      JOIN bilateral_agreements ba ON (
+        (ba.country_a_code = $1 AND ba.country_b_code = d.code) OR
+        (ba.country_b_code = $1 AND ba.country_a_code = d.code)
+      )
+      WHERE ba.agreement_type = 'visa_exemption' AND ba.is_active = true
+    `;
     
-    next();
-  };
-};
-```
-
-### Scripts de Déploiement
-
-#### package.json
-```json
-{
-  "name": "dora-backend",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "migrate": "node migrations/migrate.js",
-    "seed": "node seeds/seed.js",
-    "test": "jest",
-    "build": "echo 'No build step required'",
-    "deploy": "pm2 start ecosystem.config.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "pg": "^8.11.3",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "helmet": "^7.1.0",
-    "cors": "^2.8.5",
-    "express-rate-limit": "^7.1.5",
-    "express-validator": "^7.0.1",
-    "multer": "^1.4.5",
-    "dotenv": "^16.3.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2",
-    "jest": "^29.7.0",
-    "supertest": "^6.3.3"
+    return await this.db.query(query, [countryCode]);
+  }
+  
+  async calculatePassportPower(countryCode: string): Promise<PassportPower> {
+    const visaFreeCount = await this.countVisaFreeDestinations(countryCode);
+    const visaOnArrivalCount = await this.countVisaOnArrivalDestinations(countryCode);
+    const totalDestinations = await this.getTotalDestinations();
+    
+    const powerScore = ((visaFreeCount + visaOnArrivalCount) / totalDestinations) * 100;
+    
+    return {
+      globalRank: await this.calculateGlobalRank(powerScore),
+      visaFreeDestinations: visaFreeCount,
+      visaOnArrivalDestinations: visaOnArrivalCount,
+      totalDestinations,
+      powerScore
+    };
   }
 }
 ```
 
-Cette spécification backend garantit une compatibilité parfaite avec le frontend DORA existant, en respectant tous les contrats d'API attendus et en fournissant une architecture robuste et scalable.
+### Accords Spéciaux et Exemptions
+
+#### Exemples d'Accords Bilatéraux/Multilatéraux
+
+**Union Européenne (Espace Schengen)**
+```sql
+INSERT INTO bilateral_agreements (country_a_code, country_b_code, agreement_type, max_stay_days, conditions) VALUES
+('FR', 'DE', 'schengen_agreement', 90, ARRAY['Carte d''identité ou passeport valide']),
+('FR', 'IT', 'schengen_agreement', 90, ARRAY['Carte d''identité ou passeport valide']),
+('FR', 'ES', 'schengen_agreement', 90, ARRAY['Carte d''identité ou passeport valide']);
+```
+
+**CEDEAO (Afrique de l'Ouest)**
+```sql
+INSERT INTO bilateral_agreements (country_a_code, country_b_code, agreement_type, max_stay_days, conditions) VALUES
+('SN', 'ML', 'ecowas_agreement', 90, ARRAY['Carte d''identité CEDEAO']),
+('SN', 'CI', 'ecowas_agreement', 90, ARRAY['Carte d''identité CEDEAO']),
+('SN', 'BF', 'ecowas_agreement', 90, ARRAY['Carte d''identité CEDEAO']);
+```
+
+**Accords France-Afrique**
+```sql
+INSERT INTO bilateral_agreements (country_a_code, country_b_code, agreement_type, max_stay_days, conditions) VALUES
+('FR', 'SN', 'bilateral_exemption', 90, ARRAY['Passeport valide', 'Justificatifs de séjour']),
+('FR', 'MA', 'bilateral_exemption', 90, ARRAY['Passeport valide', 'Billet retour']),
+('FR', 'TN', 'bilateral_exemption', 90, ARRAY['Passeport valide', 'Billet retour']);
+```
+
+### Frontend Integration
+
+#### Composant: VisaChecker
+```typescript
+interface VisaCheckerProps {
+  userNationality?: string;
+  destinationCountry?: string;
+  onVisaCheckResult?: (result: VisaCheckResponse) => void;
+}
+
+const VisaChecker: React.FC<VisaCheckerProps> = ({
+  userNationality,
+  destinationCountry,
+  onVisaCheckResult
+}) => {
+  const [visaResult, setVisaResult] = useState<VisaCheckResponse | null>(null);
+  
+  const checkVisaRequirement = async () => {
+    if (!userNationality || !destinationCountry) return;
+    
+    try {
+      const response = await fetch(`/api/visa-check?origin=${userNationality}&destination=${destinationCountry}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setVisaResult(result.data);
+        onVisaCheckResult?.(result.data);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la vérification du visa:', error);
+    }
+  };
+  
+  return (
+    <div className="visa-checker">
+      {visaResult && (
+        <div className={`visa-result ${visaResult.visaRequired ? 'visa-required' : 'visa-free'}`}>
+          <div className="visa-status">
+            {visaResult.visaRequired ? (
+              <div className="flex items-center text-red-600">
+                <AlertCircle className="h-5 w-5 mr-2" />
+                Visa requis
+              </div>
+            ) : (
+              <div className="flex items-center text-green-600">
+                <CheckCircle className="h-5 w-5 mr-2" />
+                Aucun visa requis
+              </div>
+            )}
+          </div>
+          
+          {visaResult.maxStayDays && (
+            <p className="text-sm text-muted-foreground">
+              Séjour autorisé : {visaResult.maxStayDays} jours maximum
+            </p>
+          )}
+          
+          {visaResult.processingTime && (
+            <p className="text-sm">
+              Délai de traitement : {visaResult.processingTime}
+            </p>
+          )}
+          
+          {visaResult.costUSD && visaResult.costUSD > 0 && (
+            <p className="text-sm font-medium">
+              Coût : {visaResult.costUSD} USD
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+```
+
+### Données de Référence
+
+#### Script de Population des Données de Visa
+```javascript
+// Script pour peupler la base avec les données de visa réelles
+const populateVisaData = async () => {
+  // Données pour passeport français (exemple)
+  const frenchPassportData = [
+    { destination: 'JP', visaRequired: false, maxStay: 90 }, // Japon
+    { destination: 'US', visaRequired: true, processingTime: '10-15 jours', cost: 160 }, // États-Unis
+    { destination: 'BR', visaRequired: false, maxStay: 90 }, // Brésil
+    { destination: 'CN', visaRequired: true, processingTime: '5-10 jours', cost: 126 }, // Chine
+    { destination: 'IN', visaRequired: true, processingTime: '3-5 jours', cost: 25 }, // Inde (e-visa)
+    { destination: 'RU', visaRequired: true, processingTime: '10-20 jours', cost: 50 }, // Russie
+    // ... 190+ destinations
+  ];
+  
+  for (const data of frenchPassportData) {
+    await db.query(`
+      INSERT INTO visa_requirements (origin_country_code, destination_country_code, visa_required, max_stay_days, processing_time, cost_usd)
+      VALUES ('FR', $1, $2, $3, $4, $5)
+      ON CONFLICT (origin_country_code, destination_country_code, visa_type) DO UPDATE SET
+        visa_required = EXCLUDED.visa_required,
+        max_stay_days = EXCLUDED.max_stay_days,
+        processing_time = EXCLUDED.processing_time,
+        cost_usd = EXCLUDED.cost_usd,
+        last_updated = CURRENT_TIMESTAMP
+    `, [data.destination, data.visaRequired, data.maxStay, data.processingTime, data.cost]);
+  }
+};
+```
+
+### Mise à Jour et Maintenance
+
+#### Endpoint de Mise à Jour des Données
+**POST /api/admin/visa-data/update**
+Headers: `Authorization: Bearer <admin_token>`
+```json
+{
+  "source": "henley_passport_index", // Source des données
+  "data": [
+    {
+      "origin_country": "FR",
+      "updates": [
+        {
+          "destination_country": "JP",
+          "visa_required": false,
+          "max_stay_days": 90,
+          "last_verified": "2024-01-15"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Système d'Alertes pour Changements
+```typescript
+interface VisaChangeAlert {
+  originCountry: string;
+  destinationCountry: string;
+  changeType: 'visa_requirement_changed' | 'agreement_expired' | 'new_agreement';
+  oldValue: any;
+  newValue: any;
+  effectiveDate: string;
+  source: string;
+}
+
+// Notifier les utilisateurs des changements affectant leurs voyages
+const notifyVisaChanges = async (changes: VisaChangeAlert[]) => {
+  for (const change of changes) {
+    const affectedUsers = await getUsersByNationality(change.originCountry);
+    
+    for (const user of affectedUsers) {
+      await sendNotification(user.id, {
+        type: 'visa_requirement_change',
+        title: `Changement visa ${change.destinationCountry}`,
+        message: `Les exigences de visa pour ${change.destinationCountry} ont changé.`,
+        data: change
+      });
+    }
+  }
+};
+```
+
+Ce système de visa basé sur la nationalité permet à DORA de fournir des informations précises et personnalisées à chaque utilisateur selon son passeport, rendant l'expérience vraiment adaptée à sa situation réelle de voyage.
