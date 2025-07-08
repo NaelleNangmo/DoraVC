@@ -28,343 +28,732 @@ DORA est une plateforme web complète dédiée à la simplification des démarch
 - **Synchronisation**: Mise à jour automatique quand le backend revient
 - **Indicateur visuel**: Statut de connexion en temps réel
 
-## 🎨 Design et UX
-
-### Philosophie de Design
-- **Apple-level aesthetics**: Attention méticuleuse aux détails
-- **Glassmorphism**: Effets de verre et transparence
-- **Animations 3D**: Transformations et rotations fluides
-- **Micro-interactions**: Feedback visuel sur chaque action
-- **Responsive**: Adaptation parfaite mobile/desktop
-
-### Thèmes
-- **Mode clair**: Gradients doux, couleurs vives
-- **Mode sombre**: Contrastes élégants, tons profonds
-- **Transition fluide**: Basculement animé entre thèmes
-- **Persistance**: Sauvegarde des préférences utilisateur
-
-### Couleurs Principales
-- **Primaire**: Gradient bleu-violet (#3B82F6 → #8B5CF6)
-- **Secondaire**: Gradient violet-rose (#8B5CF6 → #EC4899)
-- **Accent**: Gradient cyan-bleu (#06B6D4 → #3B82F6)
-- **Succès**: Vert émeraude (#10B981)
-- **Erreur**: Rouge corail (#EF4444)
-
-## 🚀 Fonctionnalités Principales
-
-### 1. Gestion des Utilisateurs
-- **Authentification**: Login/Register avec validation
-- **Profils**: Avatars, préférences, historique
-- **Rôles**: Utilisateur standard et administrateur
-- **Sécurité**: Hachage des mots de passe, sessions JWT
-
-### 2. Catalogue des Pays
-- **180+ destinations**: Informations complètes
-- **Filtres avancés**: Continent, visa, coût, délai
-- **Recherche intelligente**: Pays, villes, continents
-- **Tri dynamique**: Popularité, coût, délai
-- **Fiches détaillées**: Visa, hébergements, restaurants, sites
-
-### 3. Simulateur de Visa Intelligent
-- **Sélection origine/destination**: Interface intuitive
-- **Logique des accords**: Exemptions automatiques
-- **Estimation coûts/délais**: Calculs en temps réel
-- **Recommandations**: Suggestions personnalisées
-
-### 4. Processus de Visa Guidé
-- **5 étapes structurées**: Recherche → Documents → Formulaire → Soumission → Suivi
-- **Progression visuelle**: Barre de progression animée
-- **Sauvegarde automatique**: Reprise où on s'est arrêté
-- **Assistant IA**: Aide contextuelle à chaque étape
-- **Documents**: Upload et gestion des fichiers
-
-### 5. Communauté Active
-- **Partage d'expériences**: Posts avec images et notes
-- **Système de votes**: Likes/dislikes avec animations
-- **Modération**: Approbation des posts par les admins
-- **Filtres**: Par pays, popularité, date, note
-- **Tags**: Catégorisation et recherche
-
-### 6. Assistant IA (ChatBot)
-- **IA spécialisée**: Expert en voyages et visas
-- **Interface moderne**: Bulles animées, typing indicators
-- **Historique**: Sauvegarde des conversations
-- **Fallback intelligent**: Réponses pré-définies si API indisponible
-- **Multilingue**: Support français, anglais, espagnol
-
-### 7. Panel d'Administration
-- **Dashboard complet**: Statistiques en temps réel
-- **Gestion des posts**: Modération avec aperçu
-- **Gestion des utilisateurs**: Profils et permissions
-- **Gestion des pays**: CRUD complet avec validation
-- **Analytics**: Métriques d'utilisation et engagement
-
-## 🛠️ Technologies et Dépendances
-
-### Frontend Core
-```json
-{
-  "next": "13.5.1",
-  "react": "18.2.0",
-  "typescript": "5.2.2",
-  "tailwindcss": "3.3.3",
-  "framer-motion": "^10.16.0"
-}
-```
-
-### UI Components
-```json
-{
-  "@radix-ui/*": "Composants accessibles",
-  "lucide-react": "Icônes modernes",
-  "sonner": "Notifications toast",
-  "class-variance-authority": "Variants CSS"
-}
-```
-
-### Backend Core
-```json
-{
-  "express": "^4.18.2",
-  "pg": "^8.11.3",
-  "bcryptjs": "^2.4.3",
-  "jsonwebtoken": "^9.0.2",
-  "helmet": "^7.1.0",
-  "cors": "^2.8.5"
-}
-```
-
-## 📁 Structure du Projet
-
-```
-dora-travel-app/
-├── app/                          # Pages Next.js App Router
-│   ├── page.tsx                  # Accueil avec simulateur
-│   ├── countries/                # Catalogue des pays
-│   │   ├── page.tsx             # Liste des pays
-│   │   └── [code]/page.tsx      # Détail d'un pays
-│   ├── community/page.tsx        # Communauté
-│   ├── visa-steps/page.tsx       # Processus de visa
-│   ├── admin/page.tsx            # Panel d'administration
-│   ├── layout.tsx               # Layout principal
-│   └── globals.css              # Styles globaux
-├── components/                   # Composants réutilisables
-│   ├── ui/                      # Composants UI de base
-│   ├── layout/                  # Header, Footer
-│   ├── auth/                    # Authentification
-│   ├── chatbot/                 # Assistant IA
-│   └── visa/                    # Composants visa
-├── lib/                         # Utilitaires et services
-│   ├── api.ts                   # Client API avec fallback
-│   ├── services/                # Services métier
-│   ├── auth.ts                  # Authentification
-│   ├── currency.ts              # Conversion de devises
-│   └── utils.ts                 # Utilitaires généraux
-├── hooks/                       # Hooks React personnalisés
-├── data/                        # Données statiques JSON
-├── server/                      # Backend Node.js
-│   ├── index.js                 # Serveur principal
-│   ├── config/database.js       # Configuration PostgreSQL
-│   ├── models/                  # Modèles de données
-│   ├── routes/                  # Routes API
-│   ├── middleware/              # Middlewares
-│   └── scripts/initDatabase.js  # Initialisation BD
-└── .naelle                      # Ce fichier de documentation
-```
-
-## 🔧 Configuration et Déploiement
-
-### Variables d'Environnement
-
-#### Frontend (.env.local)
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-```
-
-#### Backend (.env)
-```env
-DATABASE_URL=postgresql://postgres:iFKabBloZvqROECyXUdxkPPulbMvXzdu@switchyard.proxy.rlwy.net:27311/railway
-JWT_SECRET=your-super-secret-jwt-key-here
-NODE_ENV=development
-PORT=3001
-```
-
-### Installation et Démarrage
-
-#### Frontend
-```bash
-npm install
-npm run dev          # Développement
-npm run build        # Production
-npm start           # Serveur de production
-```
-
-#### Backend
-```bash
-cd server
-npm install
-npm start           # Démarrage avec auto-init BD
-npm run dev         # Développement avec watch
-```
-
-### Base de Données
-- **Auto-initialisation**: Le serveur crée automatiquement toutes les tables
-- **Données de test**: 5 enregistrements par table
-- **Comptes par défaut**:
-  - Admin: `admin@dora.travel` / `admin123`
-  - User: `jean@example.com` / `password123`
-
-## 🔒 Sécurité
-
-### Authentification
-- **JWT**: Tokens sécurisés avec expiration
-- **bcrypt**: Hachage des mots de passe (salt rounds: 10)
-- **Validation**: Vérification des entrées côté client et serveur
-- **Sessions**: Gestion automatique des tokens
-
-### Protection API
-- **Helmet**: Protection des en-têtes HTTP
-- **CORS**: Configuration stricte des origines
-- **Rate Limiting**: 100 requêtes/15min par IP
-- **Validation**: Sanitisation des données d'entrée
-
-### Données
-- **Chiffrement**: Mots de passe hachés
-- **Validation**: Schémas stricts côté serveur
-- **Sanitisation**: Protection contre les injections
-- **Backup**: Sauvegarde locale en fallback
-
-## 🌐 Internationalisation
-
-### Langues Supportées
-- **Français** (par défaut)
-- **Anglais**
-- **Espagnol**
-
-### Devises Supportées
-- **EUR** (Euro)
-- **USD** (Dollar américain)
-- **XAF** (Franc CFA)
-- **CAD** (Dollar canadien)
-- **GBP** (Livre sterling)
-- **JPY** (Yen japonais)
-- **AUD** (Dollar australien)
-
-### Conversion Automatique
-- **Taux de change**: Intégrés dans l'application
-- **Formatage**: Adaptation selon la devise
-- **Persistance**: Sauvegarde des préférences
-
-## 📊 Performance et Optimisation
-
-### Frontend
-- **Code Splitting**: Chargement à la demande
-- **Image Optimization**: Next.js Image component
-- **Caching**: Stratégies de cache intelligentes
-- **Bundle Size**: Optimisation des imports
-
-### Backend
-- **Connection Pooling**: Pool PostgreSQL optimisé
-- **Indexation**: Index sur les colonnes critiques
-- **Compression**: Gzip pour les réponses
-- **Monitoring**: Logs détaillés et métriques
-
-### Base de Données
-- **Index**: Sur email, code pays, statut posts
-- **Relations**: Foreign keys avec CASCADE
-- **Transactions**: Opérations atomiques
-- **Backup**: Stratégie de sauvegarde
-
-## 🧪 Tests et Qualité
-
-### Validation
-- **TypeScript**: Typage strict
-- **ESLint**: Règles de qualité de code
-- **Validation**: Schémas de données
-- **Error Handling**: Gestion complète des erreurs
-
-### Monitoring
-- **Health Check**: Endpoint de santé
-- **Logs**: Système de logging complet
-- **Métriques**: Suivi des performances
-- **Alertes**: Notifications d'erreurs
-
-## 🚀 Fonctionnalités Avancées
-
-### Système Hybride
-- **Détection automatique**: Vérification backend toutes les 30s
-- **Fallback transparent**: Basculement invisible pour l'utilisateur
-- **Synchronisation**: Mise à jour automatique des données
-- **Indicateur**: Badge de statut de connexion
-
-### Animations 3D
-- **Preserve-3d**: Transformations 3D réelles
-- **Glassmorphism**: Effets de verre et flou
-- **Micro-interactions**: Feedback sur chaque action
-- **Performance**: Optimisées avec Framer Motion
-
-### Assistant IA
-- **API OpenRouter**: Modèle WizardLM-2-8x22B
-- **Spécialisation**: Expert en voyages et visas
-- **Fallback**: Réponses intelligentes hors ligne
-- **Historique**: Sauvegarde des conversations
-
-## 📈 Métriques et Analytics
-
-### Statistiques Disponibles
-- **Utilisateurs**: Total, nouveaux, actifs
-- **Posts**: Total, approuvés, en attente
-- **Pays**: Popularité, demandes de visa
-- **Engagement**: Likes, commentaires, vues
-
-### Tableaux de Bord
-- **Admin**: Vue d'ensemble complète
-- **Utilisateur**: Progression personnelle
-- **Communauté**: Statistiques publiques
-- **Performance**: Métriques techniques
-
-## 🔮 Roadmap et Évolutions
-
-### Fonctionnalités Prévues
-- **Notifications push**: Alertes en temps réel
-- **Chat en direct**: Communication entre utilisateurs
-- **Géolocalisation**: Détection automatique du pays
-- **Offline-first**: Mode hors ligne complet
-- **Mobile app**: Application native React Native
-
-### Améliorations Techniques
-- **GraphQL**: Migration vers GraphQL
-- **Microservices**: Architecture distribuée
-- **CDN**: Distribution de contenu global
-- **AI/ML**: Recommandations personnalisées
-
-## 👥 Équipe et Contribution
-
-### Rôles
-- **Product Owner**: Vision et stratégie
-- **Tech Lead**: Architecture et développement
-- **UI/UX Designer**: Design et expérience utilisateur
-- **DevOps**: Infrastructure et déploiement
-
-### Standards de Code
-- **Commits**: Convention Conventional Commits
-- **Branches**: GitFlow avec feature branches
-- **Reviews**: Code review obligatoire
-- **Documentation**: Inline et externe
-
-## 📞 Support et Maintenance
-
-### Contacts
-- **Email**: contact@dora.travel
-- **Support**: support@dora.travel
-- **Urgences**: urgent@dora.travel
-
-### Maintenance
-- **Mises à jour**: Déploiement continu
-- **Monitoring**: 24/7 avec alertes
-- **Backup**: Quotidien avec rétention 30 jours
-- **Sécurité**: Audits réguliers et patches
-
 ---
 
-**DORA** - Votre compagnon digital pour explorer le monde en toute sérénité 🌍✈️
+## 🔧 SPÉCIFICATIONS BACKEND DÉTAILLÉES
+
+### Structure de Base de Données PostgreSQL
+
+#### Table: users
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+    avatar TEXT,
+    nationality VARCHAR(3), -- Code ISO pays
+    current_country VARCHAR(3), -- Code ISO pays
+    status VARCHAR(20) DEFAULT 'tourist' CHECK (status IN ('tourist', 'worker', 'student', 'resident')),
+    preferences JSONB DEFAULT '{}',
+    profile JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP,
+    is_active BOOLEAN DEFAULT true
+);
+
+-- Index pour optimiser les requêtes
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_status ON users(status);
+```
+
+#### Table: countries
+```sql
+CREATE TABLE countries (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    code VARCHAR(3) UNIQUE NOT NULL, -- Code ISO
+    flag VARCHAR(10) NOT NULL,
+    continent VARCHAR(50) NOT NULL,
+    capital VARCHAR(255) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    language VARCHAR(255) NOT NULL,
+    image TEXT NOT NULL,
+    description TEXT NOT NULL,
+    visa_required BOOLEAN DEFAULT true,
+    processing_time VARCHAR(50) NOT NULL,
+    average_cost INTEGER DEFAULT 0,
+    popular_season VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_countries_code ON countries(code);
+CREATE INDEX idx_countries_continent ON countries(continent);
+CREATE INDEX idx_countries_visa_required ON countries(visa_required);
+```
+
+#### Table: community_posts
+```sql
+CREATE TABLE community_posts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    country_id INTEGER REFERENCES countries(id) ON DELETE SET NULL,
+    title VARCHAR(500) NOT NULL,
+    content TEXT NOT NULL,
+    image TEXT,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    tags JSONB DEFAULT '[]',
+    likes INTEGER DEFAULT 0,
+    dislikes INTEGER DEFAULT 0,
+    comments_count INTEGER DEFAULT 0,
+    views INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    approved_at TIMESTAMP,
+    approved_by INTEGER REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_posts_user_id ON community_posts(user_id);
+CREATE INDEX idx_posts_country_id ON community_posts(country_id);
+CREATE INDEX idx_posts_status ON community_posts(status);
+CREATE INDEX idx_posts_created_at ON community_posts(created_at);
+```
+
+#### Table: post_interactions
+```sql
+CREATE TABLE post_interactions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    post_id INTEGER REFERENCES community_posts(id) ON DELETE CASCADE,
+    interaction_type VARCHAR(20) CHECK (interaction_type IN ('like', 'dislike')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, post_id)
+);
+
+CREATE INDEX idx_interactions_user_post ON post_interactions(user_id, post_id);
+```
+
+#### Table: visa_applications
+```sql
+CREATE TABLE visa_applications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    country_id INTEGER REFERENCES countries(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'submitted', 'processing', 'approved', 'rejected')),
+    current_step INTEGER DEFAULT 1,
+    total_steps INTEGER DEFAULT 5,
+    form_data JSONB DEFAULT '{}',
+    documents JSONB DEFAULT '[]',
+    notes TEXT,
+    submitted_at TIMESTAMP,
+    expected_decision TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_visa_apps_user_id ON visa_applications(user_id);
+CREATE INDEX idx_visa_apps_status ON visa_applications(status);
+```
+
+#### Table: user_profiles
+```sql
+CREATE TABLE user_profiles (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    visa_applications JSONB DEFAULT '[]',
+    saved_places JSONB DEFAULT '[]',
+    integration_progress JSONB DEFAULT '{}',
+    travel_history JSONB DEFAULT '[]',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_profiles_user_id ON user_profiles(user_id);
+```
+
+#### Table: hotels
+```sql
+CREATE TABLE hotels (
+    id SERIAL PRIMARY KEY,
+    country_id INTEGER REFERENCES countries(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    image TEXT NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    amenities JSONB DEFAULT '[]',
+    description TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_hotels_country_id ON hotels(country_id);
+CREATE INDEX idx_hotels_rating ON hotels(rating);
+```
+
+#### Table: restaurants
+```sql
+CREATE TABLE restaurants (
+    id SERIAL PRIMARY KEY,
+    country_id INTEGER REFERENCES countries(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    cuisine VARCHAR(100) NOT NULL,
+    price_range VARCHAR(10) NOT NULL,
+    rating DECIMAL(2,1) NOT NULL,
+    image TEXT NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    average_price DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    description TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_restaurants_country_id ON restaurants(country_id);
+CREATE INDEX idx_restaurants_cuisine ON restaurants(cuisine);
+```
+
+#### Table: tourist_sites
+```sql
+CREATE TABLE tourist_sites (
+    id SERIAL PRIMARY KEY,
+    country_id INTEGER REFERENCES countries(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    image TEXT NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    visit_duration VARCHAR(50) NOT NULL,
+    best_time VARCHAR(100) NOT NULL,
+    entry_fee DECIMAL(10,2) DEFAULT 0,
+    currency VARCHAR(3) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_sites_country_id ON tourist_sites(country_id);
+CREATE INDEX idx_sites_category ON tourist_sites(category);
+```
+
+### API Endpoints Détaillés
+
+#### 🔐 Authentication Endpoints
+
+**POST /api/auth/register**
+```json
+{
+  "name": "string",
+  "email": "string",
+  "password": "string",
+  "nationality": "string (optional)",
+  "status": "tourist|worker|student|resident (optional)"
+}
+```
+Response: `{ "success": true, "data": { "user": UserObject, "token": "jwt_token" } }`
+
+**POST /api/auth/login**
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
+Response: `{ "success": true, "data": { "user": UserObject, "token": "jwt_token" } }`
+
+**POST /api/auth/logout**
+Headers: `Authorization: Bearer <token>`
+Response: `{ "success": true, "message": "Logged out successfully" }`
+
+**GET /api/auth/me**
+Headers: `Authorization: Bearer <token>`
+Response: `{ "success": true, "data": UserObject }`
+
+#### 👤 Users Endpoints
+
+**GET /api/users**
+Headers: `Authorization: Bearer <admin_token>`
+Query: `?page=1&limit=10&role=user&status=active`
+Response: `{ "success": true, "data": UserObject[], "pagination": PaginationObject }`
+
+**GET /api/users/:id**
+Headers: `Authorization: Bearer <token>`
+Response: `{ "success": true, "data": UserObject }`
+
+**PUT /api/users/:id**
+Headers: `Authorization: Bearer <token>`
+```json
+{
+  "name": "string (optional)",
+  "avatar": "string (optional)",
+  "status": "tourist|worker|student|resident (optional)",
+  "preferences": "object (optional)",
+  "profile": "object (optional)"
+}
+```
+Response: `{ "success": true, "data": UserObject }`
+
+**DELETE /api/users/:id**
+Headers: `Authorization: Bearer <admin_token>`
+Response: `{ "success": true, "message": "User deleted successfully" }`
+
+#### 🌍 Countries Endpoints
+
+**GET /api/countries**
+Query: `?continent=Europe&visa_required=true&search=france&sort=name&order=asc&page=1&limit=20`
+Response: `{ "success": true, "data": CountryObject[], "pagination": PaginationObject }`
+
+**GET /api/countries/:code**
+Response: `{ "success": true, "data": CountryObject }`
+
+**POST /api/countries**
+Headers: `Authorization: Bearer <admin_token>`
+```json
+{
+  "name": "string",
+  "code": "string",
+  "flag": "string",
+  "continent": "string",
+  "capital": "string",
+  "currency": "string",
+  "language": "string",
+  "image": "string",
+  "description": "string",
+  "visa_required": "boolean",
+  "processing_time": "string",
+  "average_cost": "number",
+  "popular_season": "string"
+}
+```
+Response: `{ "success": true, "data": CountryObject }`
+
+**PUT /api/countries/:id**
+Headers: `Authorization: Bearer <admin_token>`
+Response: `{ "success": true, "data": CountryObject }`
+
+**DELETE /api/countries/:id**
+Headers: `Authorization: Bearer <admin_token>`
+Response: `{ "success": true, "message": "Country deleted successfully" }`
+
+#### 💬 Community Endpoints
+
+**GET /api/community**
+Query: `?status=approved&country_id=1&user_id=1&sort=recent&page=1&limit=10`
+Response: `{ "success": true, "data": PostObject[], "pagination": PaginationObject }`
+
+**GET /api/community/:id**
+Response: `{ "success": true, "data": PostObject }`
+
+**POST /api/community**
+Headers: `Authorization: Bearer <token>`
+```json
+{
+  "country_id": "number (optional)",
+  "title": "string",
+  "content": "string",
+  "image": "string (optional)",
+  "rating": "number (1-5, optional)",
+  "tags": "string[]"
+}
+```
+Response: `{ "success": true, "data": PostObject }`
+
+**PATCH /api/community/:id/status**
+Headers: `Authorization: Bearer <admin_token>`
+```json
+{
+  "status": "approved|rejected"
+}
+```
+Response: `{ "success": true, "data": PostObject }`
+
+**PATCH /api/community/:id/likes**
+Headers: `Authorization: Bearer <token>`
+```json
+{
+  "likes": "number",
+  "dislikes": "number"
+}
+```
+Response: `{ "success": true, "data": PostObject }`
+
+**DELETE /api/community/:id**
+Headers: `Authorization: Bearer <token|admin_token>`
+Response: `{ "success": true, "message": "Post deleted successfully" }`
+
+#### 📋 Visa Applications Endpoints
+
+**GET /api/visa-applications**
+Headers: `Authorization: Bearer <token>`
+Query: `?status=processing&country_id=1`
+Response: `{ "success": true, "data": VisaApplicationObject[] }`
+
+**GET /api/visa-applications/:id**
+Headers: `Authorization: Bearer <token>`
+Response: `{ "success": true, "data": VisaApplicationObject }`
+
+**POST /api/visa-applications**
+Headers: `Authorization: Bearer <token>`
+```json
+{
+  "country_id": "number",
+  "status": "draft|submitted",
+  "current_step": "number",
+  "total_steps": "number",
+  "form_data": "object",
+  "documents": "array"
+}
+```
+Response: `{ "success": true, "data": VisaApplicationObject }`
+
+**PUT /api/visa-applications/:id**
+Headers: `Authorization: Bearer <token>`
+Response: `{ "success": true, "data": VisaApplicationObject }`
+
+#### 🏨 Hotels Endpoints
+
+**GET /api/hotels**
+Query: `?country_id=1&rating=4&price_min=50&price_max=200&page=1&limit=10`
+Response: `{ "success": true, "data": HotelObject[], "pagination": PaginationObject }`
+
+**GET /api/hotels/:id**
+Response: `{ "success": true, "data": HotelObject }`
+
+#### 🍽️ Restaurants Endpoints
+
+**GET /api/restaurants**
+Query: `?country_id=1&cuisine=french&rating=4&page=1&limit=10`
+Response: `{ "success": true, "data": RestaurantObject[], "pagination": PaginationObject }`
+
+**GET /api/restaurants/:id**
+Response: `{ "success": true, "data": RestaurantObject }`
+
+#### 🏛️ Tourist Sites Endpoints
+
+**GET /api/tourist-sites**
+Query: `?country_id=1&category=monument&page=1&limit=10`
+Response: `{ "success": true, "data": TouristSiteObject[], "pagination": PaginationObject }`
+
+**GET /api/tourist-sites/:id**
+Response: `{ "success": true, "data": TouristSiteObject }`
+
+#### 📊 Analytics Endpoints (Admin)
+
+**GET /api/analytics/dashboard**
+Headers: `Authorization: Bearer <admin_token>`
+Response: 
+```json
+{
+  "success": true,
+  "data": {
+    "users": {
+      "total": "number",
+      "new_this_month": "number",
+      "active": "number"
+    },
+    "posts": {
+      "total": "number",
+      "pending": "number",
+      "approved": "number"
+    },
+    "countries": {
+      "total": "number",
+      "most_popular": "CountryObject[]"
+    },
+    "visa_applications": {
+      "total": "number",
+      "by_status": "object"
+    }
+  }
+}
+```
+
+#### 🔍 Search Endpoints
+
+**GET /api/search**
+Query: `?q=canada&type=countries|posts|all&page=1&limit=10`
+Response: `{ "success": true, "data": SearchResultObject[], "pagination": PaginationObject }`
+
+#### 🏥 Health Check
+
+**GET /api/health**
+Response: 
+```json
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "timestamp": "ISO_DATE",
+    "database": "connected",
+    "version": "1.0.0"
+  }
+}
+```
+
+### Modèles de Données (TypeScript Interfaces)
+
+#### UserObject
+```typescript
+interface UserObject {
+  id: number;
+  name: string;
+  email: string;
+  role: 'user' | 'admin';
+  avatar?: string;
+  nationality?: string;
+  current_country?: string;
+  status: 'tourist' | 'worker' | 'student' | 'resident';
+  preferences: {
+    language: string;
+    currency: string;
+    notifications: boolean;
+  };
+  profile: {
+    skills?: string[];
+    experience?: string;
+    field?: string;
+    interests?: string[];
+    travel_history?: string[];
+  };
+  created_at: string;
+  updated_at: string;
+  last_login?: string;
+  is_active: boolean;
+}
+```
+
+#### CountryObject
+```typescript
+interface CountryObject {
+  id: number;
+  name: string;
+  code: string;
+  flag: string;
+  continent: string;
+  capital: string;
+  currency: string;
+  language: string;
+  image: string;
+  description: string;
+  visa_required: boolean;
+  processing_time: string;
+  average_cost: number;
+  popular_season: string;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+#### PostObject
+```typescript
+interface PostObject {
+  id: number;
+  user_id: number;
+  user_name: string;
+  user_avatar: string;
+  country_id?: number;
+  country_name?: string;
+  title: string;
+  content: string;
+  image?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rating?: number;
+  tags: string[];
+  likes: number;
+  dislikes: number;
+  comments_count: number;
+  views: number;
+  created_at: string;
+  approved_at?: string;
+  user_liked?: boolean;
+  user_disliked?: boolean;
+}
+```
+
+### Configuration Serveur
+
+#### Variables d'Environnement (.env)
+```env
+# Base de données
+DATABASE_URL=postgresql://user:password@host:port/database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=dora_db
+DB_USER=dora_user
+DB_PASSWORD=secure_password
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key-here
+JWT_EXPIRES_IN=7d
+
+# Serveur
+NODE_ENV=development
+PORT=3001
+CORS_ORIGIN=http://localhost:3000
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Upload
+MAX_FILE_SIZE=10485760
+UPLOAD_PATH=./uploads
+
+# APIs Externes
+GOOGLE_PLACES_API_KEY=your_key
+INDEED_API_KEY=your_key
+UNSPLASH_ACCESS_KEY=your_key
+```
+
+#### Structure des Dossiers Backend
+```
+backend/
+├── src/
+│   ├── config/
+│   │   ├── database.js
+│   │   ├── jwt.js
+│   │   └── cors.js
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── usersController.js
+│   │   ├── countriesController.js
+│   │   ├── communityController.js
+│   │   ├── visaController.js
+│   │   └── analyticsController.js
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   ├── validation.js
+│   │   ├── rateLimiting.js
+│   │   └── errorHandler.js
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Country.js
+│   │   ├── Post.js
+│   │   └── VisaApplication.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── users.js
+│   │   ├── countries.js
+│   │   ├── community.js
+│   │   ├── visa.js
+│   │   └── analytics.js
+│   ├── services/
+│   │   ├── authService.js
+│   │   ├── emailService.js
+│   │   └── uploadService.js
+│   ├── utils/
+│   │   ├── validation.js
+│   │   ├── pagination.js
+│   │   └── helpers.js
+│   └── app.js
+├── migrations/
+├── seeds/
+├── tests/
+├── package.json
+└── server.js
+```
+
+### Sécurité et Validation
+
+#### Middleware d'Authentification
+```javascript
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'Token manquant' });
+  }
+  
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ success: false, message: 'Token invalide' });
+    }
+    req.user = user;
+    next();
+  });
+};
+```
+
+#### Validation des Données
+```javascript
+const validatePost = [
+  body('title').isLength({ min: 5, max: 500 }).trim().escape(),
+  body('content').isLength({ min: 10, max: 5000 }).trim().escape(),
+  body('rating').optional().isInt({ min: 1, max: 5 }),
+  body('tags').optional().isArray({ max: 10 })
+];
+```
+
+#### Rate Limiting
+```javascript
+const rateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requêtes par IP
+  message: { success: false, message: 'Trop de requêtes' }
+});
+```
+
+### Performance et Optimisation
+
+#### Pagination Standard
+```javascript
+const paginate = (page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+  return { limit: parseInt(limit), offset };
+};
+```
+
+#### Cache Redis (optionnel)
+```javascript
+const redis = require('redis');
+const client = redis.createClient();
+
+const cacheMiddleware = (duration = 300) => {
+  return async (req, res, next) => {
+    const key = req.originalUrl;
+    const cached = await client.get(key);
+    
+    if (cached) {
+      return res.json(JSON.parse(cached));
+    }
+    
+    res.sendResponse = res.json;
+    res.json = (body) => {
+      client.setex(key, duration, JSON.stringify(body));
+      res.sendResponse(body);
+    };
+    
+    next();
+  };
+};
+```
+
+### Scripts de Déploiement
+
+#### package.json
+```json
+{
+  "name": "dora-backend",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "migrate": "node migrations/migrate.js",
+    "seed": "node seeds/seed.js",
+    "test": "jest",
+    "build": "echo 'No build step required'",
+    "deploy": "pm2 start ecosystem.config.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "multer": "^1.4.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  }
+}
+```
+
+Cette spécification backend garantit une compatibilité parfaite avec le frontend DORA existant, en respectant tous les contrats d'API attendus et en fournissant une architecture robuste et scalable.
