@@ -1,35 +1,3 @@
-# DORA - Digital Online Resource for Adventurers
-
-## 📋 Description du Projet
-
-DORA est une plateforme web complète dédiée à la simplification des démarches de visa et à l'accompagnement des voyageurs dans leurs aventures internationales. L'application combine un frontend moderne en Next.js avec un backend robuste en Node.js/PostgreSQL, offrant une expérience utilisateur exceptionnelle avec un système de fallback intelligent.
-
-## 🏗️ Architecture Technique
-
-### Frontend (Next.js 13+)
-- **Framework**: Next.js avec App Router
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Animations**: Framer Motion pour les effets 3D
-- **État**: React Hooks + Context API
-- **TypeScript**: Typage strict pour la robustesse
-- **PWA**: Support hors ligne avec fallback automatique
-
-### Backend (Node.js + PostgreSQL)
-- **Runtime**: Node.js avec modules ES6
-- **Base de données**: PostgreSQL avec pool de connexions
-- **API**: REST avec Express.js
-- **Authentification**: JWT + bcrypt
-- **Sécurité**: Helmet, CORS, Rate Limiting
-- **Initialisation**: Auto-setup de la BD avec données de test
-
-### Système Hybride Intelligent
-- **Connexion automatique**: Détection du backend disponible
-- **Fallback transparent**: Basculement vers les données locales
-- **Synchronisation**: Mise à jour automatique quand le backend revient
-- **Indicateur visuel**: Statut de connexion en temps réel
-
----
-
 ## 🔧 SPÉCIFICATIONS BACKEND DÉTAILLÉES
 
 ### Structure de Base de Données PostgreSQL
