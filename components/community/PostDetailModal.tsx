@@ -1,391 +1,311 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  Heart, 
-  MessageCircle, 
-  Star, 
-  MapPin, 
-  Calendar, 
-  Eye, 
-  ThumbsUp, 
-  ThumbsDown,
-  Send,
-  User
-} from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { formatDate } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { MapPin, Calendar, ThumbsUp, MessageCircle, Eye, Star, ThumbsDown } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { toast } from 'sonner';
-
-interface Comment {
-  id: number;
-  userId: number;
-  userName: string;
-  userAvatar: string;
-  content: string;
-  createdAt: string;
-  likes: number;
-}
 
 interface Post {
   id: number;
   userId: number;
-  userName: string;
-  userAvatar: string;
+  userName?: string;
+  userAvatar?: string;
   title: string;
   content: string;
-  image?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  image: string;
+  status: string;
   countryId?: number;
-  countryName?: string;
-  rating?: number;
+  rating: number;
   createdAt: string;
   approvedAt?: string;
   tags: string[];
   likes: number;
+  comments: string[] | string | undefined;
   dislikes: number;
-  comments: number;
   views: number;
-  userLiked?: boolean;
-  userDisliked?: boolean;
 }
 
 interface PostDetailModalProps {
   post: Post | null;
-  isOpen: boolean;
   onClose: () => void;
-  onLike: (postId: number) => void;
-  onDislike: (postId: number) => void;
+  onUpdatePost: (updater: (prev: Post[]) => Post[]) => Post[];
 }
 
-export function PostDetailModal({ post, isOpen, onClose, onLike, onDislike }: PostDetailModalProps) {
-  const [comments, setComments] = useState<Comment[]>([]);
+export default function PostDetailModal({ post, onClose, onUpdatePost }: PostDetailModalProps) {
   const [newComment, setNewComment] = useState('');
-  const [rating, setRating] = useState(0);
-  const { user, isAuthenticated } = useAuth();
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const [localLikes, setLocalLikes] = useState(post?.likes || 0);
+  const [localDislikes, setLocalDislikes] = useState(post?.dislikes || 0);
+  const [localViews, setLocalViews] = useState(post?.views || 0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasDisliked, setHasDisliked] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (post) {
+      setLocalLikes(post.likes || 0);
+      setLocalDislikes(post.dislikes || 0);
+      setLocalViews(post.views || 0);
+      setHasLiked(false);
+      setHasDisliked(false);
+    }
+  }, [post]);
 
   if (!post) return null;
 
-  const handleAddComment = () => {
-    if (!newComment.trim() || !isAuthenticated) {
-      toast.error('Veuillez vous connecter et écrire un commentaire');
-      return;
-    }
+  const country = [
+    { id: 1, name: 'Canada', flag: '🇨🇦' },
+    { id: 3, name: 'Japon', flag: '🇯🇵' },
+    { id: 4, name: 'États-Unis', flag: '🇺🇸' },
+  ].find(c => c.id === post.countryId);
 
-    const comment: Comment = {
-      id: Date.now(),
-      userId: user?.id || 0,
-      userName: user?.name || 'Utilisateur',
-      userAvatar: user?.avatar || '',
-      content: newComment,
-      createdAt: new Date().toISOString(),
-      likes: 0
-    };
-
-    setComments(prev => [...prev, comment]);
-    setNewComment('');
-    toast.success('Commentaire ajouté !');
+  const normalizeComments = (comments: string[] | string | undefined): string[] => {
+    if (Array.isArray(comments)) return comments;
+    if (typeof comments === 'string') return [comments];
+    return [];
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const commentsArray = normalizeComments(post.comments);
+
+  const handleAddComment = () => {
+    if (newComment.trim() && user) {
+      const currentComments = normalizeComments(post.comments);
+      onUpdatePost((prev) =>
+        prev.map(p =>
+          p.id === post.id
+            ? { ...p, comments: [...currentComments, `${user.name}: ${newComment}`] }
+            : p
+        )
+      );
+      setNewComment('');
+    } else if (!user) {
+      alert('Vous devez être connecté pour ajouter un commentaire.');
+    }
+  };
+
+  const handleLike = () => {
+    if (!hasLiked && user) {
+      setLocalLikes(localLikes + 1);
+      setHasLiked(true);
+      if (hasDisliked) {
+        setLocalDislikes(localDislikes - 1);
+        onUpdatePost((prev) =>
+          prev.map(p =>
+            p.id === post.id ? { ...p, likes: p.likes + 1, dislikes: p.dislikes - 1 } : p
+          )
+        );
+        setHasDisliked(false);
+      } else {
+        onUpdatePost((prev) =>
+          prev.map(p =>
+            p.id === post.id ? { ...p, likes: p.likes + 1 } : p
+          )
+        );
+      }
+    } else if (!user) {
+      alert('Vous devez être connecté pour liker.');
+    }
+  };
+
+  const handleDislike = () => {
+    if (!hasDisliked && user) {
+      setLocalDislikes(localDislikes + 1);
+      setHasDisliked(true);
+      if (hasLiked) {
+        setLocalLikes(localLikes - 1);
+        onUpdatePost((prev) =>
+          prev.map(p =>
+            p.id === post.id ? { ...p, dislikes: p.dislikes + 1, likes: p.likes - 1 } : p
+          )
+        );
+        setHasLiked(false);
+      } else {
+        onUpdatePost((prev) =>
+          prev.map(p =>
+            p.id === post.id ? { ...p, dislikes: p.dislikes + 1 } : p
+          )
+        );
+      }
+    } else if (!user) {
+      alert('Vous devez être connecté pour disliker.');
+    }
+  };
+
+  const handleRate = (rating: number) => {
+    if (user) {
+      setUserRating(rating);
+      const currentComments = normalizeComments(post.comments);
+      onUpdatePost((prev) =>
+        prev.map(p =>
+          p.id === post.id
+            ? { ...p, rating: (p.rating * (currentComments.length) + rating) / (currentComments.length + 1) }
+            : p
+        )
+      );
+    } else {
+      alert('Vous devez être connecté pour noter.');
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] glass-effect border-0 p-0">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, rotateY: 20 }}
-          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-          transition={{ duration: 0.5 }}
-          className="preserve-3d h-full"
-        >
-          {/* Header */}
-          <DialogHeader className="p-6 border-b border-border/50">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <motion.div
-                  whileHover={{ scale: 1.1, rotateY: 15 }}
-                >
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={post.userAvatar} alt={post.userName} />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                      {post.userName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </motion.div>
-                <div>
-                  <DialogTitle className="text-xl font-bold">{post.title}</DialogTitle>
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <span>{post.userName}</span>
-                    <span>•</span>
-                    <Calendar className="h-3 w-3" />
-                    <span>{formatDate(post.createdAt)}</span>
-                    {post.countryName && (
-                      <>
-                        <span>•</span>
-                        <MapPin className="h-3 w-3" />
-                        <span>{post.countryName}</span>
-                      </>
-                    )}
+    <Dialog open={!!post} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl bg-gradient-to-br from-white/90 to-blue-50 dark:from-gray-800/90 dark:to-gray-900 border border-blue-200/50 dark:border-gray-700/50 rounded-xl shadow-xl p-6 transition-all duration-300">
+        <DialogHeader className="mb-6">
+          <DialogTitle className="text-3xl font-bold text-blue-900 dark:text-gray-100 bg-gradient-to-r from-blue-100 to-transparent dark:from-gray-700/50 p-2 rounded-lg">
+            {post.title}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            {post.image && (
+              <div className="relative w-full h-64 overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
+                <div
+                  className="w-full h-full bg-cover bg-center"
+                  style={{ backgroundImage: `url(${post.image})` }}
+                />
+                {country && (
+                  <div className="absolute top-4 left-4">
+                    <Badge className="bg-white/80 text-blue-900 dark:text-gray-200 dark:bg-gray-700/70 backdrop-blur-sm">
+                      <MapPin className="h-4 w-4 mr-1 text-blue-600 dark:text-blue-400" />
+                      {country.name}
+                    </Badge>
                   </div>
-                </div>
+                )}
               </div>
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Button variant="ghost" size="sm" onClick={onClose}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </motion.div>
-            </div>
-          </DialogHeader>
-
-          {/* Content */}
-          <ScrollArea className="flex-1 max-h-[60vh]">
-            <div className="p-6 space-y-6">
-              {/* Image */}
-              {post.image && (
-                <motion.div
-                  className="relative h-64 overflow-hidden rounded-lg"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div
-                    className="w-full h-full bg-cover bg-center"
-                    style={{ backgroundImage: `url(${post.image})` }}
-                  />
-                  {post.rating && (
-                    <motion.div 
-                      className="absolute top-4 right-4"
-                      whileHover={{ scale: 1.1, rotate: -5 }}
-                    >
-                      <Badge className="bg-yellow-500 text-white shadow-lg">
-                        <Star className="h-3 w-3 mr-1" />
-                        {post.rating}/5
-                      </Badge>
-                    </motion.div>
-                  )}
-                </motion.div>
-              )}
-
-              {/* Content */}
-              <div className="prose prose-gray dark:prose-invert max-w-none">
-                <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-                  {post.content}
+            )}
+          </div>
+          <div className="lg:col-span-2 space-y-6">
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-14 w-14 border-2 border-blue-200/50 dark:border-gray-700/50 shadow-sm">
+                <AvatarImage src={post.userAvatar} alt={post.userName} />
+                <AvatarFallback className="bg-blue-600 dark:bg-gray-700 text-white text-lg">
+                  {post.userName?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h4 className="text-xl font-semibold text-blue-900 dark:text-gray-100">{post.userName}</h4>
+                <p className="text-sm text-blue-700 dark:text-gray-400 flex items-center">
+                  <Calendar className="h-4 w-4 mr-1 text-blue-600 dark:text-blue-400" />
+                  {formatDate(post.createdAt)}
                 </p>
               </div>
-
-              {/* Tags */}
-              {post.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.1 }}
-                      whileHover={{ scale: 1.1 }}
-                    >
-                      <Badge variant="secondary" className="text-xs glass-effect">
-                        #{tag}
-                      </Badge>
-                    </motion.div>
-                  ))}
+            </div>
+            <div className="prose dark:prose-invert max-w-none text-blue-800 dark:text-gray-300 leading-relaxed">
+              <p className="whitespace-pre-wrap">{post.content}</p>
+            </div>
+            {post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag, i) => (
+                  <Badge
+                    key={i}
+                    variant="secondary"
+                    className="text-blue-900 dark:text-gray-200 bg-blue-100/70 dark:bg-gray-700/50 hover:bg-blue-200/70 dark:hover:bg-gray-600/70 transition-colors duration-200"
+                  >
+                    #{tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center space-x-6 mt-4">
+              <Button
+                variant={hasLiked ? 'default' : 'ghost'}
+                size="sm"
+                className={`text-blue-600 dark:text-blue-400 ${hasLiked ? 'bg-blue-600 text-white' : 'hover:bg-blue-100 dark:hover:bg-blue-900'}`}
+                onClick={handleLike}
+                disabled={hasLiked || !user}
+              >
+                <ThumbsUp className="h-5 w-5 mr-1" />
+                <span>{localLikes}</span>
+              </Button>
+              <Button
+                variant={hasDisliked ? 'default' : 'ghost'}
+                size="sm"
+                className={`text-red-600 dark:text-red-400 ${hasDisliked ? 'bg-red-600 text-white' : 'hover:bg-red-100 dark:hover:bg-red-900'}`}
+                onClick={handleDislike}
+                disabled={hasDisliked || !user}
+              >
+                <ThumbsDown className="h-5 w-5 mr-1" />
+                <span>{localDislikes}</span>
+              </Button>
+              <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                <Eye className="h-5 w-5" />
+                <span className="text-lg font-medium">{localViews}</span>
+              </div>
+              {post.rating > 0 && (
+                <div className="flex items-center space-x-2 text-yellow-600 dark:text-yellow-400">
+                  <Star className="h-5 w-5" />
+                  <span className="text-lg font-medium">{post.rating.toFixed(1)}/5</span>
                 </div>
               )}
-
-              {/* Stats and Actions */}
-              <div className="flex items-center justify-between p-4 bg-background/50 rounded-lg glass-effect">
-                <div className="flex items-center space-x-6">
-                  <motion.button
-                    onClick={() => onLike(post.id)}
-                    className={`flex items-center space-x-2 text-sm transition-colors ${
-                      post.userLiked ? 'text-red-600' : 'text-muted-foreground hover:text-red-600'
-                    }`}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <ThumbsUp className={`h-5 w-5 ${post.userLiked ? 'fill-current' : ''}`} />
-                    <span>{post.likes}</span>
-                  </motion.button>
-                  
-                  <motion.button
-                    onClick={() => onDislike(post.id)}
-                    className={`flex items-center space-x-2 text-sm transition-colors ${
-                      post.userDisliked ? 'text-blue-600' : 'text-muted-foreground hover:text-blue-600'
-                    }`}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <ThumbsDown className={`h-5 w-5 ${post.userDisliked ? 'fill-current' : ''}`} />
-                    <span>{post.dislikes}</span>
-                  </motion.button>
-
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <MessageCircle className="h-5 w-5" />
-                    <span>{comments.length} commentaires</span>
-                  </div>
-
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <Eye className="h-5 w-5" />
-                    <span>{post.views} vues</span>
-                  </div>
-                </div>
-
-                {/* Rating */}
-                {isAuthenticated && (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-muted-foreground">Noter :</span>
-                    <div className="flex space-x-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <motion.button
-                          key={star}
-                          onClick={() => setRating(star)}
-                          className={`text-lg ${
-                            star <= rating ? 'text-yellow-400' : 'text-gray-300'
-                          }`}
-                          whileHover={{ scale: 1.2 }}
-                          whileTap={{ scale: 0.8 }}
-                        >
-                          <Star className={`h-4 w-4 ${star <= rating ? 'fill-current' : ''}`} />
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            </div>
+            <div className="mt-6">
+              <Label htmlFor="comment" className="text-blue-900 dark:text-gray-100">Ajouter un commentaire</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  id="comment"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Écrivez votre commentaire..."
+                  className="flex-1 border border-blue-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 text-blue-900 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  disabled={!user}
+                />
+                <Button
+                  onClick={handleAddComment}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 dark:hover:from-blue-800 dark:hover:to-blue-900 rounded-lg transition-all duration-200"
+                  disabled={!user}
+                >
+                  Envoyer
+                </Button>
               </div>
-
-              {/* Comments Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center">
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Commentaires ({comments.length})
-                </h3>
-
-                {/* Add Comment */}
-                {isAuthenticated ? (
-                  <motion.div 
-                    className="space-y-3"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <div className="flex space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.avatar} alt={user?.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs">
-                          {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 space-y-2">
-                        <Textarea
-                          placeholder="Ajouter un commentaire..."
-                          value={newComment}
-                          onChange={(e) => setNewComment(e.target.value)}
-                          className="min-h-[80px] glass-effect border-border/50"
-                        />
-                        <motion.div
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <Button 
-                            onClick={handleAddComment}
-                            size="sm"
-                            disabled={!newComment.trim()}
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                          >
-                            <Send className="h-4 w-4 mr-2" />
-                            Publier
-                          </Button>
-                        </motion.div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div 
-                    className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg glass-effect"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    <p className="text-blue-700 dark:text-blue-300">
-                      Connectez-vous pour ajouter un commentaire
-                    </p>
-                  </motion.div>
-                )}
-
-                {/* Comments List */}
-                <div className="space-y-4">
-                  <AnimatePresence>
-                    {comments.map((comment, index) => (
-                      <motion.div
-                        key={comment.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="flex space-x-3 p-3 bg-background/50 rounded-lg glass-effect"
-                        whileHover={{ scale: 1.01, x: 5 }}
+              <div className="mt-4 max-h-40 overflow-y-auto">
+                {commentsArray.length > 0 ? (
+                  <>
+                    <h4 className="text-lg font-semibold text-blue-900 dark:text-gray-100 mb-2">Commentaires</h4>
+                    {commentsArray.map((comment, index) => (
+                      <p
+                        key={index}
+                        className="text-blue-800 dark:text-gray-300 bg-blue-50 dark:bg-gray-700/50 p-2 rounded-md mb-2 last:mb-0"
                       >
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={comment.userAvatar} alt={comment.userName} />
-                          <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs">
-                            {comment.userName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="font-medium text-sm">{comment.userName}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDate(comment.createdAt)}
-                            </span>
-                          </div>
-                          <p className="text-sm text-foreground">{comment.content}</p>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <motion.button
-                              className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-red-600"
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                            >
-                              <Heart className="h-3 w-3" />
-                              <span>{comment.likes}</span>
-                            </motion.button>
-                          </div>
-                        </div>
-                      </motion.div>
+                        {comment}
+                      </p>
                     ))}
-                  </AnimatePresence>
-
-                  {comments.length === 0 && (
-                    <motion.div 
-                      className="text-center py-8 text-muted-foreground"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <MessageCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>Aucun commentaire pour le moment</p>
-                      <p className="text-sm">Soyez le premier à commenter !</p>
-                    </motion.div>
-                  )}
-                </div>
+                  </>
+                ) : (
+                  <p className="text-blue-700 dark:text-gray-400 italic">Aucun commentaire pour le moment.</p>
+                )}
               </div>
             </div>
-          </ScrollArea>
-        </motion.div>
+            <div className="mt-6">
+              <Label className="text-blue-900 dark:text-gray-100">Notez ce post</Label>
+              <div className="flex gap-1 mt-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Button
+                    key={star}
+                    variant={userRating === star ? 'default' : 'outline'}
+                    size="sm"
+                    className={`text-yellow-500 ${userRating === star ? 'bg-yellow-500 text-white' : 'hover:bg-yellow-100 dark:hover:bg-yellow-900'}`}
+                    onClick={() => handleRate(star)}
+                    disabled={!user}
+                  >
+                    ★
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <Button
+              onClick={onClose}
+              className="mt-6 w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 dark:hover:from-blue-800 dark:hover:to-blue-900 rounded-lg shadow-md transition-all duration-200"
+            >
+              Fermer
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

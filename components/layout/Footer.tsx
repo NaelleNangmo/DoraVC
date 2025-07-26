@@ -81,8 +81,8 @@ export function Footer() {
             <div className="space-y-4 text-sm">
               {[
                 { icon: Mail, text: 'contact@dora.travel', href: 'mailto:contact@dora.travel' },
-                { icon: Phone, text: '+33 1 23 45 67 89', href: 'tel:+33123456789' },
-                { icon: MapPin, text: 'Paris, France', href: '#' }
+                { icon: Phone, text: '+237 655 99 81 06', href: 'tel:+237655998106' },
+                { icon: MapPin, text: 'Douala, Cameroun', href: '#' }
               ].map((item, index) => (
                 <div key={index} className="flex items-center space-x-3 text-muted-foreground">
                   <item.icon className="h-4 w-4 text-primary" />
@@ -102,7 +102,7 @@ export function Footer() {
         {/* Bottom section */}
         <div className="border-t py-6 flex flex-col md:flex-row items-center justify-between">
           <p className="text-muted-foreground text-sm">
-            © 2024 DORA. Tous droits réservés.
+            © 2025 DORA. Tous droits réservés.
           </p>
           
           <div className="flex items-center space-x-6 mt-4 md:mt-0">

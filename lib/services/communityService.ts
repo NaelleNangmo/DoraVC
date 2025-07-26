@@ -23,213 +23,135 @@ export interface CommunityPost {
   userDisliked?: boolean;
 }
 
+interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 class CommunityService {
-  async getPosts(status?: string): Promise<CommunityPost[]> {
+  async getPosts(status?: string, page: number = 1, limit: number = 10): Promise<PaginatedResponse<CommunityPost>> {
     try {
-      if (apiClient.isOnline()) {
-        const endpoint = status ? `/community?status=${status}` : '/community';
-        const response = await apiClient.get<CommunityPost[]>(endpoint);
-        
-        if (response.success && response.data) {
-          return response.data.map(this.transformPost);
-        }
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const endpoint = status 
+        ? `/community?status=${encodeURIComponent(status)}&page=${page}&limit=${limit}` 
+        : `/community?page=${page}&limit=${limit}`;
+      const response = await apiClient.get<PaginatedResponse<CommunityPost>>(endpoint);
+      if (response.success && response.data) {
+        return {
+          data: response.data.data.map(this.transformPost),
+          total: response.data.total,
+          page: response.data.page,
+          limit: response.data.limit,
+        };
       }
+      throw new Error('Réponse backend invalide');
     } catch (error) {
-      console.log('Récupération backend échouée, utilisation des données locales');
+      console.error('Erreur lors de la récupération des posts:', error);
+      throw error;
     }
-
-    // Fallback sur les données locales
-    const savedPosts = localStorage.getItem('communityPosts');
-    if (savedPosts) {
-      const posts = JSON.parse(savedPosts);
-      return status ? posts.filter((p: CommunityPost) => p.status === status) : posts;
-    }
-
-    return [];
   }
 
-  async getPost(id: number): Promise<CommunityPost | null> {
+  async getPost(id: number): Promise<CommunityPost> {
     try {
-      if (apiClient.isOnline()) {
-        const response = await apiClient.get<CommunityPost>(`/community/${id}`);
-        
-        if (response.success && response.data) {
-          return this.transformPost(response.data);
-        }
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.get<CommunityPost>(`/community/${id}`);
+      if (response.success && response.data) {
+        return this.transformPost(response.data);
       }
+      throw new Error('Post non trouvé');
     } catch (error) {
-      console.log('Récupération backend échouée, utilisation des données locales');
+      console.error('Erreur lors de la récupération du post:', error);
+      throw error;
     }
-
-    // Fallback sur les données locales
-    const savedPosts = localStorage.getItem('communityPosts');
-    if (savedPosts) {
-      const posts = JSON.parse(savedPosts);
-      return posts.find((p: CommunityPost) => p.id === id) || null;
-    }
-
-    return null;
   }
 
-  async createPost(postData: Partial<CommunityPost>): Promise<CommunityPost | null> {
+  async createPost(postData: Partial<CommunityPost>): Promise<CommunityPost> {
     try {
-      if (apiClient.isOnline()) {
-        const response = await apiClient.post<CommunityPost>('/community', {
-          country_id: postData.countryId,
-          title: postData.title,
-          content: postData.content,
-          image: postData.image,
-          rating: postData.rating,
-          tags: postData.tags
-        });
-        
-        if (response.success && response.data) {
-          return this.transformPost(response.data);
-        }
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.post<CommunityPost>('/community', {
+        user_id: postData.userId,
+        title: postData.title,
+        content: postData.content,
+        image: postData.image,
+        country_id: postData.countryId,
+        rating: postData.rating,
+        tags: postData.tags,
+      });
+      if (response.success && response.data) {
+        return this.transformPost(response.data);
       }
+      throw new Error('Échec de la création du post');
     } catch (error) {
-      console.log('Création backend échouée, sauvegarde locale');
+      console.error('Erreur lors de la création du post:', error);
+      throw error;
     }
-
-    // Fallback sur la sauvegarde locale
-    const newPost: CommunityPost = {
-      id: Date.now(),
-      userId: postData.userId || 0,
-      userName: postData.userName || 'Utilisateur',
-      userAvatar: postData.userAvatar || '',
-      title: postData.title || '',
-      content: postData.content || '',
-      image: postData.image,
-      status: 'pending',
-      countryId: postData.countryId,
-      countryName: postData.countryName,
-      rating: postData.rating,
-      createdAt: new Date().toISOString(),
-      tags: postData.tags || [],
-      likes: 0,
-      dislikes: 0,
-      comments: 0,
-      views: 0
-    };
-
-    // Sauvegarder localement
-    const savedPosts = localStorage.getItem('communityPosts');
-    const posts = savedPosts ? JSON.parse(savedPosts) : [];
-    posts.push(newPost);
-    localStorage.setItem('communityPosts', JSON.stringify(posts));
-
-    return newPost;
   }
 
-  async updatePostStatus(id: number, status: string): Promise<CommunityPost | null> {
+  async updatePostStatus(id: number, status: 'pending' | 'approved' | 'rejected'): Promise<CommunityPost> {
     try {
-      if (apiClient.isOnline()) {
-        const response = await apiClient.patch<CommunityPost>(`/community/${id}/status`, { status });
-        
-        if (response.success && response.data) {
-          return this.transformPost(response.data);
-        }
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.patch<CommunityPost>(`/community/${id}/status`, { status });
+      if (response.success && response.data) {
+        return this.transformPost(response.data);
       }
+      throw new Error('Échec de la mise à jour du statut');
     } catch (error) {
-      console.log('Mise à jour backend échouée, mise à jour locale');
+      console.error('Erreur lors de la mise à jour du statut:', error);
+      throw error;
     }
-
-    // Fallback sur la mise à jour locale
-    const savedPosts = localStorage.getItem('communityPosts');
-    if (savedPosts) {
-      const posts = JSON.parse(savedPosts);
-      const postIndex = posts.findIndex((p: CommunityPost) => p.id === id);
-      
-      if (postIndex !== -1) {
-        posts[postIndex].status = status;
-        if (status === 'approved') {
-          posts[postIndex].approvedAt = new Date().toISOString();
-        }
-        localStorage.setItem('communityPosts', JSON.stringify(posts));
-        return posts[postIndex];
-      }
-    }
-
-    return null;
   }
 
-  async updateLikes(id: number, likes: number, dislikes: number): Promise<CommunityPost | null> {
+  async updateLikes(id: number, likes: number, dislikes: number): Promise<CommunityPost> {
     try {
-      if (apiClient.isOnline()) {
-        const response = await apiClient.patch<CommunityPost>(`/community/${id}/likes`, { likes, dislikes });
-        
-        if (response.success && response.data) {
-          return this.transformPost(response.data);
-        }
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.patch<CommunityPost>(`/community/${id}/likes`, { likes, dislikes });
+      if (response.success && response.data) {
+        return this.transformPost(response.data);
       }
+      throw new Error('Échec de la mise à jour des likes');
     } catch (error) {
-      console.log('Mise à jour backend échouée, mise à jour locale');
+      console.error('Erreur lors de la mise à jour des likes:', error);
+      throw error;
     }
-
-    // Fallback sur la mise à jour locale
-    const savedPosts = localStorage.getItem('communityPosts');
-    if (savedPosts) {
-      const posts = JSON.parse(savedPosts);
-      const postIndex = posts.findIndex((p: CommunityPost) => p.id === id);
-      
-      if (postIndex !== -1) {
-        posts[postIndex].likes = likes;
-        posts[postIndex].dislikes = dislikes;
-        localStorage.setItem('communityPosts', JSON.stringify(posts));
-        return posts[postIndex];
-      }
-    }
-
-    return null;
   }
 
-  async deletePost(id: number): Promise<boolean> {
+  async deletePost(id: number): Promise<void> {
     try {
-      if (apiClient.isOnline()) {
-        const response = await apiClient.delete(`/community/${id}`);
-        
-        if (response.success) {
-          return true;
-        }
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.delete(`/community/${id}`);
+      if (!response.success) {
+        throw new Error('Échec de la suppression du post');
       }
     } catch (error) {
-      console.log('Suppression backend échouée, suppression locale');
+      console.error('Erreur lors de la suppression du post:', error);
+      throw error;
     }
-
-    // Fallback sur la suppression locale
-    const savedPosts = localStorage.getItem('communityPosts');
-    if (savedPosts) {
-      const posts = JSON.parse(savedPosts);
-      const filteredPosts = posts.filter((p: CommunityPost) => p.id !== id);
-      localStorage.setItem('communityPosts', JSON.stringify(filteredPosts));
-      return true;
-    }
-
-    return false;
   }
 
   private transformPost(post: any): CommunityPost {
     return {
       id: post.id,
-      userId: post.user_id || post.userId,
-      userName: post.user_name || post.userName,
-      userAvatar: post.user_avatar || post.userAvatar,
-      title: post.title,
-      content: post.content,
+      userId: post.user_id || post.userId || 0,
+      userName: post.user_name || post.userName || 'Utilisateur',
+      userAvatar: post.user_avatar || post.userAvatar || '',
+      title: post.title || '',
+      content: post.content || '',
       image: post.image,
-      status: post.status,
+      status: post.status || 'pending',
       countryId: post.country_id || post.countryId,
       countryName: post.country_name || post.countryName,
-      rating: post.rating,
-      createdAt: post.created_at || post.createdAt,
+      rating: post.rating || 0,
+      createdAt: post.created_at || post.createdAt || new Date().toISOString(),
       approvedAt: post.approved_at || post.approvedAt,
       tags: Array.isArray(post.tags) ? post.tags : (post.tags ? JSON.parse(post.tags) : []),
       likes: post.likes || 0,
       dislikes: post.dislikes || 0,
       comments: post.comments || 0,
       views: post.views || 0,
-      userLiked: post.userLiked,
-      userDisliked: post.userDisliked
+      userLiked: post.userLiked || false,
+      userDisliked: post.userDisliked || false,
     };
   }
 }

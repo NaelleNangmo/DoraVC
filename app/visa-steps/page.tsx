@@ -42,7 +42,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/use-auth';
-import countries from '@/data/countries.json';
 import { visaStepsService, type UserStatus, type StepConfig } from '@/lib/services/visaStepsService';
 import { toast } from 'sonner';
 
@@ -117,30 +116,69 @@ function VisaStepsContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const countryCode = searchParams.get('country');
-    if (countryCode) {
-      const country = countries.find(c => c.code === countryCode);
-      setSelectedCountry(country || countries[0]);
-    } else {
-      setSelectedCountry(countries[0]);
-    }
+    const fetchData = async () => {
+      const countryCode = searchParams.get('country');
+      try {
+        // Tentative de récupération via le service
+        const countriesData = await visaStepsService.getCountries();
+        const country = countriesData.find(c => c.code === countryCode) || countriesData[0];
+        setSelectedCountry(country);
+      } catch (error) {
+        console.error('Erreur avec le backend pour les pays, utilisation du fichier local:', error);
+        const countries = (await import('@/data/countries.json')).default;
+        const country = countries.find(c => c.code === countryCode) || countries[0];
+        setSelectedCountry(country);
+      }
 
-    // Load saved progress
-    const savedProgress = localStorage.getItem('visaProgress');
-    if (savedProgress) {
-      const progress = JSON.parse(savedProgress);
-      setCurrentStep(progress.currentStep || 1);
-      setCompletedSteps(progress.completedSteps || []);
-      setFormData(progress.formData || formData);
-      setDocuments(progress.documents || []);
-      setUserStatus(progress.userStatus || 'tourist');
-    }
-  }, [searchParams]);
+      // ✅ Charger la progression sauvegardée (avec conversion des dates)
+      if (user) {
+        try {
+          const progress = await visaStepsService.getUserProgress(user.id, countryCode || '');
+          if (progress) {
+            setCurrentStep(progress.currentStep || 1);
+            setCompletedSteps(progress.completedSteps || []);
+            setFormData(progress.formData || formData);
+            const documentsWithParsedDates = (progress.documents || []).map((doc: any) => ({
+              ...doc,
+              uploadDate: new Date(doc.uploadDate),
+            }));
+            setDocuments(documentsWithParsedDates);
+            setUserStatus(progress.userStatus || 'tourist');
+          }
+        } catch (error) {
+          console.error('Erreur avec le backend pour la progression, utilisation du fallback local:', error);
+          const savedProgress = localStorage.getItem('visaProgress');
+          if (savedProgress) {
+            const progress = JSON.parse(savedProgress);
+            setCurrentStep(progress.currentStep || 1);
+            setCompletedSteps(progress.completedSteps || []);
+            setFormData(progress.formData || formData);
+            const documentsWithParsedDates = (progress.documents || []).map((doc: any) => ({
+              ...doc,
+              uploadDate: new Date(doc.uploadDate),
+            }));
+            setDocuments(documentsWithParsedDates);
+            setUserStatus(progress.userStatus || 'tourist');
+          }
+        }
+      }
+    };
+    fetchData();
+  }, [searchParams, user]);
 
   useEffect(() => {
     if (selectedCountry) {
-      const generatedSteps = visaStepsService.generateStepsForUser(userStatus, selectedCountry.code);
-      setSteps(generatedSteps);
+      const fetchSteps = async () => {
+        try {
+          const generatedSteps = await visaStepsService.generateStepsForUser(userStatus, selectedCountry.code);
+          setSteps(generatedSteps);
+        } catch (error) {
+          console.error('Erreur avec le backend pour les étapes, utilisation du fallback local:', error);
+          // Pas de fichier .json pour les étapes dans l'implémentation originale, donc on laisse vide
+          setSteps([]);
+        }
+      };
+      fetchSteps();
     }
   }, [selectedCountry, userStatus]);
 
@@ -172,7 +210,7 @@ function VisaStepsContent() {
     );
   }
 
-  const saveProgress = () => {
+  const saveProgress = async () => {
     const progress = {
       currentStep,
       completedSteps,
@@ -181,7 +219,14 @@ function VisaStepsContent() {
       userStatus,
       countryCode: selectedCountry?.code
     };
-    localStorage.setItem('visaProgress', JSON.stringify(progress));
+    try {
+      if (user) {
+        await visaStepsService.saveUserProgress(user.id, progress);
+      }
+    } catch (error) {
+      console.error('Erreur avec le backend pour sauvegarder la progression, utilisation du fallback local:', error);
+      localStorage.setItem('visaProgress', JSON.stringify(progress));
+    }
   };
 
   const handleStepComplete = (stepNumber: number) => {
@@ -202,6 +247,47 @@ function VisaStepsContent() {
     
     saveProgress();
     toast.success(`Étape ${stepNumber} terminée !`);
+  };
+
+  const resetProgress = async () => {
+    if (user) {
+      try {
+        await visaStepsService.resetUserProgress(user.id);
+      } catch (error) {
+        console.error('Erreur avec le backend pour réinitialiser la progression, utilisation du fallback local:', error);
+        localStorage.removeItem('visaProgress');
+      }
+    }
+    setCurrentStep(1);
+    setCompletedSteps([]);
+    setFormData({
+      personalInfo: {
+        firstName: '',
+        lastName: '',
+        nationality: '',
+        passportNumber: '',
+        dateOfBirth: '',
+        placeOfBirth: ''
+      },
+      statusSpecific: {
+        university: '',
+        program: '',
+        admissionLetter: false,
+        languageTest: '',
+        jobOffer: '',
+        employer: '',
+        workPermit: false,
+        skillsAssessment: '',
+        sponsorInfo: '',
+        relationshipProof: '',
+        financialSupport: '',
+        accommodation: '',
+        financialProof: '',
+        healthInsurance: ''
+      }
+    });
+    setDocuments([]);
+    toast.success('Progression réinitialisée');
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -620,7 +706,7 @@ function VisaStepsContent() {
                   <CardTitle>Résumé de progression</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-3 mb-4">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Étapes complétées</span>
                       <span className="font-medium">{completedSteps.length}/{steps.length}</span>
@@ -638,6 +724,16 @@ function VisaStepsContent() {
                       <span className="font-medium">{totalDuration}</span>
                     </div>
                   </div>
+
+                  {/* ✅ Bouton Réinitialiser ici */}
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={resetProgress}
+                    className="w-full"
+                  >
+                    Réinitialiser la progression
+                  </Button>
                 </CardContent>
               </Card>
 

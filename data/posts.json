@@ -2,6 +2,8 @@
   {
     "id": 1,
     "userId": 1,
+    "userName": "Jean Dupont",
+    "userAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
     "title": "Mon expérience visa Canada",
     "content": "Processus assez long mais bien organisé. Les documents demandés étaient clairs et le suivi en ligne très pratique.",
     "image": "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=400&h=300&fit=crop",
@@ -17,6 +19,8 @@
   {
     "id": 2,
     "userId": 2,
+    "userName": "Marie Martin",
+    "userAvatar": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     "title": "Voyage au Japon - Conseils pratiques",
     "content": "Le Japon est un pays fascinant ! Voici mes conseils pour bien préparer votre voyage : réservez le JR Pass, apprenez quelques mots de japonais...",
     "image": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=300&fit=crop",
@@ -32,6 +36,8 @@
   {
     "id": 3,
     "userId": 3,
+    "userName": "Pierre Durand",
+    "userAvatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
     "title": "Demande de visa USA en cours",
     "content": "J'ai soumis ma demande de visa pour les États-Unis il y a une semaine. En attente de la réponse...",
     "image": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&h=300&fit=crop",

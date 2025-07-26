@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'DORA Team' }],
   viewport: 'width=device-width, initial-scale=1',
   openGraph: {
-    title: 'DORA - Digital Online Resource for Adventurers',
+    title: ' DORA - Digital Online Resource for Adventurers',
     description: 'Simplifiez vos démarches de visa avec DORA',
     url: 'https://dora.travel',
     siteName: 'DORA',
@@ -40,6 +40,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning className={`scroll-smooth ${inter.variable}`}>
+      <head>
+        <link
+          rel="icon"
+           href="https://www.svgrepo.com/download/491099/global.svg"
+          type="image/png"
+        />
+      </head>
       <body className={`${inter.className} antialiased`}>
         <div className="min-h-screen flex flex-col bg-background text-foreground">
           <Header />

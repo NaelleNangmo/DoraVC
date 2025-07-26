@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react';
+
 // Configuration de l'API avec fallback automatique
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -43,6 +45,10 @@ class ApiClient {
       this.isBackendAvailable = false;
       return false;
     }
+  }
+
+  public async getBackendHealth(): Promise<boolean> {
+    return this.checkBackendHealth();
   }
 
   private getAuthHeaders(): HeadersInit {
@@ -341,7 +347,7 @@ export const useBackendStatus = () => {
 
   useEffect(() => {
     const checkStatus = async () => {
-      const status = await apiClient.checkBackendHealth();
+      const status = await apiClient.getBackendHealth();
       setIsOnline(status);
     };
 

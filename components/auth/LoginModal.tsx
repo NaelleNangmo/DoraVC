@@ -23,7 +23,9 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    phone: '', // Nouveau champ : numéro de téléphone
+    country: '' // Nouveau champ : pays
   });
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -65,7 +67,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     setIsLoading(true);
 
     try {
-      if (!registerData.name.trim() || !registerData.email.trim() || !registerData.password.trim()) {
+      if (!registerData.name.trim() || !registerData.email.trim() || !registerData.password.trim() || !registerData.phone.trim() || !registerData.country.trim()) {
         toast.error('Veuillez remplir tous les champs obligatoires');
         setIsLoading(false);
         return;
@@ -94,19 +96,22 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
         id: Date.now(),
         name: registerData.name,
         email: registerData.email,
+        phone: registerData.phone, // Nouveau champ ajouté
+        country: registerData.country, // Nouveau champ ajouté
         role: 'user' as const,
         avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face`,
         joinedDate: new Date().toISOString().split('T')[0],
         preferences: {
           language: 'fr',
           currency: 'EUR'
-        }
+        },
+        suspended: false // Champ par défaut pour cohérence avec le modèle User
       };
 
       login(newUser);
       toast.success('Compte créé avec succès !');
       onOpenChange(false);
-      setRegisterData({ name: '', email: '', password: '', confirmPassword: '' });
+      setRegisterData({ name: '', email: '', password: '', confirmPassword: '', phone: '', country: '' });
       
       setTimeout(() => {
         window.location.reload();
@@ -221,6 +226,32 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                   placeholder="votre@email.com"
                   value={registerData.email}
                   onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Numéro de téléphone</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+33 6 12 34 56 78"
+                  value={registerData.phone}
+                  onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="country">Pays</Label>
+                <Input
+                  id="country"
+                  type="text"
+                  placeholder="France"
+                  value={registerData.country}
+                  onChange={(e) => setRegisterData({ ...registerData, country: e.target.value })}
                   required
                   disabled={isLoading}
                 />

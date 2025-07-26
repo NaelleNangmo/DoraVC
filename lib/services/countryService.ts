@@ -1,5 +1,4 @@
 import { apiClient } from '@/lib/api';
-import countriesData from '@/data/countries.json';
 
 export interface Country {
   id: number;
@@ -18,84 +17,81 @@ export interface Country {
   popularSeason: string;
 }
 
+interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 class CountryService {
-  async getAll(): Promise<Country[]> {
+  async getAll(page: number = 1, limit: number = 10): Promise<PaginatedResponse<Country>> {
     try {
-      if (apiClient.isOnline()) {
-        const response = await apiClient.get<Country[]>('/countries');
-        
-        if (response.success && response.data) {
-          return response.data;
-        }
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.get<PaginatedResponse<Country>>(`/countries?page=${page}&limit=${limit}`);
+      if (response.success && response.data) {
+        return response.data;
       }
+      throw new Error('Réponse backend invalide');
     } catch (error) {
-      console.log('Récupération backend échouée, utilisation des données locales');
+      console.error('Erreur lors de la récupération des pays:', error);
+      throw error;
     }
-
-    // Fallback sur les données locales
-    return countriesData as Country[];
   }
 
-  async getByCode(code: string): Promise<Country | null> {
+  async getByCode(code: string): Promise<Country> {
     try {
-      if (apiClient.isOnline()) {
-        const response = await apiClient.get<Country>(`/countries/${code}`);
-        
-        if (response.success && response.data) {
-          return response.data;
-        }
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.get<Country>(`/countries/${code.toUpperCase()}`);
+      if (response.success && response.data) {
+        return response.data;
       }
+      throw new Error('Pays non trouvé');
     } catch (error) {
-      console.log('Récupération backend échouée, utilisation des données locales');
+      console.error('Erreur lors de la récupération du pays:', error);
+      throw error;
     }
-
-    // Fallback sur les données locales
-    return countriesData.find(c => c.code.toLowerCase() === code.toLowerCase()) || null;
   }
 
-  async create(countryData: Omit<Country, 'id'>): Promise<Country | null> {
+  async create(countryData: Omit<Country, 'id'>): Promise<Country> {
     try {
-      if (apiClient.isOnline()) {
-        const response = await apiClient.post<Country>('/countries', countryData);
-        
-        if (response.success && response.data) {
-          return response.data;
-        }
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.post<Country>('/countries', countryData);
+      if (response.success && response.data) {
+        return response.data;
       }
+      throw new Error('Échec de la création du pays');
     } catch (error) {
-      console.log('Création backend échouée');
+      console.error('Erreur lors de la création du pays:', error);
+      throw error;
     }
-
-    return null;
   }
 
-  async update(id: number, countryData: Partial<Country>): Promise<Country | null> {
+  async update(id: number, countryData: Partial<Country>): Promise<Country> {
     try {
-      if (apiClient.isOnline()) {
-        const response = await apiClient.put<Country>(`/countries/${id}`, countryData);
-        
-        if (response.success && response.data) {
-          return response.data;
-        }
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.put<Country>(`/countries/${id}`, countryData);
+      if (response.success && response.data) {
+        return response.data;
       }
+      throw new Error('Échec de la mise à jour du pays');
     } catch (error) {
-      console.log('Mise à jour backend échouée');
+      console.error('Erreur lors de la mise à jour du pays:', error);
+      throw error;
     }
-
-    return null;
   }
 
-  async delete(id: number): Promise<boolean> {
+  async delete(id: number): Promise<void> {
     try {
-      if (apiClient.isOnline()) {
-        const response = await apiClient.delete(`/countries/${id}`);
-        return response.success;
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.delete(`/countries/${id}`);
+      if (!response.success) {
+        throw new Error('Échec de la suppression du pays');
       }
     } catch (error) {
-      console.log('Suppression backend échouée');
+      console.error('Erreur lors de la suppression du pays:', error);
+      throw error;
     }
-
-    return false;
   }
 }
 

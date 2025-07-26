@@ -1,5 +1,4 @@
-// Service pour gérer les profils utilisateurs et leurs préférences
-// Ceci permet de personnaliser l'expérience selon le statut et les besoins
+import { apiClient } from '@/lib/api';
 
 export interface UserProfile {
   id: number;
@@ -16,21 +15,14 @@ export interface UserProfile {
     notifications: boolean;
   };
   profile: {
-    // Pour les travailleurs
     skills?: string[];
     experience?: string;
     jobType?: 'full-time' | 'part-time' | 'freelance';
-    
-    // Pour les étudiants
     field?: string;
     level?: 'bachelor' | 'master' | 'phd';
     budget?: number;
-    
-    // Pour les résidents
     familySize?: number;
     housingType?: 'apartment' | 'house' | 'studio';
-    
-    // Général
     interests?: string[];
     travelHistory?: string[];
   };
@@ -50,6 +42,12 @@ export interface VisaApplication {
   submittedAt?: Date;
   expectedDecision?: Date;
   notes?: string;
+}
+
+export interface Document {
+  name: string;
+  uploaded: boolean;
+  fileUrl?: string;
 }
 
 export interface SavedPlace {
@@ -82,290 +80,126 @@ export interface IntegrationProgress {
 }
 
 class UserProfileService {
-  private readonly STORAGE_KEY = 'userProfile';
-
-  // Récupérer le profil utilisateur complet
-  getUserProfile(userId: number): UserProfile | null {
+  async getUserProfile(userId: number): Promise<UserProfile> {
     try {
-      const profiles = this.getAllProfiles();
-      return profiles.find(p => p.id === userId) || null;
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.get<UserProfile>(`/users/${userId}`);
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error('Profil non trouvé');
     } catch (error) {
       console.error('Erreur lors de la récupération du profil:', error);
-      return null;
+      throw error;
     }
   }
 
-  // Mettre à jour le profil utilisateur
-  updateUserProfile(userId: number, updates: Partial<UserProfile>): boolean {
+  async updateUserProfile(userId: number, updates: Partial<UserProfile>): Promise<UserProfile> {
     try {
-      const profiles = this.getAllProfiles();
-      const profileIndex = profiles.findIndex(p => p.id === userId);
-      
-      if (profileIndex === -1) {
-        // Créer un nouveau profil
-        const newProfile: UserProfile = {
-          id: userId,
-          name: updates.name || '',
-          email: updates.email || '',
-          role: updates.role || 'user',
-          status: updates.status || 'tourist',
-          preferences: {
-            language: 'fr',
-            currency: 'EUR',
-            notifications: true,
-            ...updates.preferences
-          },
-          profile: updates.profile || {},
-          visaApplications: [],
-          savedPlaces: [],
-          integrationProgress: {
-            completedTasks: [],
-            essentialServices: {
-              banking: false,
-              healthcare: false,
-              housing: false,
-              transport: false,
-              documentation: false
-            },
-            socialIntegration: {
-              languageCourse: false,
-              communityGroups: false,
-              localEvents: false,
-              networking: false
-            }
-          },
-          ...updates
-        };
-        profiles.push(newProfile);
-      } else {
-        // Mettre à jour le profil existant
-        profiles[profileIndex] = {
-          ...profiles[profileIndex],
-          ...updates,
-          preferences: {
-            ...profiles[profileIndex].preferences,
-            ...updates.preferences
-          },
-          profile: {
-            ...profiles[profileIndex].profile,
-            ...updates.profile
-          }
-        };
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.put<UserProfile>(`/users/${userId}`, updates);
+      if (response.success && response.data) {
+        return response.data;
       }
-      
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(profiles));
-      return true;
+      throw new Error('Échec de la mise à jour du profil');
     } catch (error) {
       console.error('Erreur lors de la mise à jour du profil:', error);
-      return false;
+      throw error;
     }
   }
 
-  // Ajouter une demande de visa
-  addVisaApplication(userId: number, application: Omit<VisaApplication, 'id'>): string | null {
+  async addVisaApplication(userId: number, application: Omit<VisaApplication, 'id'>): Promise<string> {
     try {
-      const profile = this.getUserProfile(userId);
-      if (!profile) return null;
-
-      const newApplication: VisaApplication = {
-        id: Date.now().toString(),
-        ...application
-      };
-
-      profile.visaApplications.push(newApplication);
-      this.updateUserProfile(userId, { visaApplications: profile.visaApplications });
-      
-      return newApplication.id;
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.post<{ id: string }>(`/users/${userId}/visa-applications`, application);
+      if (response.success && response.data) {
+        return response.data.id;
+      }
+      throw new Error('Échec de l\'ajout de la demande de visa');
     } catch (error) {
       console.error('Erreur lors de l\'ajout de la demande de visa:', error);
-      return null;
+      throw error;
     }
   }
 
-  // Mettre à jour une demande de visa
-  updateVisaApplication(userId: number, applicationId: string, updates: Partial<VisaApplication>): boolean {
+  async updateVisaApplication(userId: number, applicationId: string, updates: Partial<VisaApplication>): Promise<void> {
     try {
-      const profile = this.getUserProfile(userId);
-      if (!profile) return false;
-
-      const appIndex = profile.visaApplications.findIndex(app => app.id === applicationId);
-      if (appIndex === -1) return false;
-
-      profile.visaApplications[appIndex] = {
-        ...profile.visaApplications[appIndex],
-        ...updates
-      };
-
-      return this.updateUserProfile(userId, { visaApplications: profile.visaApplications });
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.patch(`/users/${userId}/visa-applications/${applicationId}`, updates);
+      if (!response.success) {
+        throw new Error('Échec de la mise à jour de la demande de visa');
+      }
     } catch (error) {
       console.error('Erreur lors de la mise à jour de la demande de visa:', error);
-      return false;
+      throw error;
     }
   }
 
-  // Sauvegarder un lieu
-  savePlace(userId: number, place: Omit<SavedPlace, 'id' | 'savedAt'>): boolean {
+  async savePlace(userId: number, place: Omit<SavedPlace, 'id' | 'savedAt'>): Promise<string> {
     try {
-      const profile = this.getUserProfile(userId);
-      if (!profile) return false;
-
-      const newPlace: SavedPlace = {
-        id: Date.now().toString(),
-        savedAt: new Date(),
-        ...place
-      };
-
-      profile.savedPlaces.push(newPlace);
-      return this.updateUserProfile(userId, { savedPlaces: profile.savedPlaces });
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.post<{ id: string }>(`/users/${userId}/saved-places`, place);
+      if (response.success && response.data) {
+        return response.data.id;
+      }
+      throw new Error('Échec de la sauvegarde du lieu');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du lieu:', error);
-      return false;
+      throw error;
     }
   }
 
-  // Supprimer un lieu sauvegardé
-  removeSavedPlace(userId: number, placeId: string): boolean {
+  async removeSavedPlace(userId: number, placeId: string): Promise<void> {
     try {
-      const profile = this.getUserProfile(userId);
-      if (!profile) return false;
-
-      profile.savedPlaces = profile.savedPlaces.filter(place => place.id !== placeId);
-      return this.updateUserProfile(userId, { savedPlaces: profile.savedPlaces });
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.delete(`/users/${userId}/saved-places/${placeId}`);
+      if (!response.success) {
+        throw new Error('Échec de la suppression du lieu');
+      }
     } catch (error) {
       console.error('Erreur lors de la suppression du lieu:', error);
-      return false;
+      throw error;
     }
   }
 
-  // Mettre à jour le progrès d'intégration
-  updateIntegrationProgress(userId: number, updates: Partial<IntegrationProgress>): boolean {
+  async updateIntegrationProgress(userId: number, updates: Partial<IntegrationProgress>): Promise<void> {
     try {
-      const profile = this.getUserProfile(userId);
-      if (!profile) return false;
-
-      profile.integrationProgress = {
-        ...profile.integrationProgress,
-        ...updates,
-        essentialServices: {
-          ...profile.integrationProgress.essentialServices,
-          ...updates.essentialServices
-        },
-        socialIntegration: {
-          ...profile.integrationProgress.socialIntegration,
-          ...updates.socialIntegration
-        }
-      };
-
-      return this.updateUserProfile(userId, { integrationProgress: profile.integrationProgress });
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.patch(`/users/${userId}/integration-progress`, updates);
+      if (!response.success) {
+        throw new Error('Échec de la mise à jour du progrès d\'intégration');
+      }
     } catch (error) {
       console.error('Erreur lors de la mise à jour du progrès d\'intégration:', error);
-      return false;
+      throw error;
     }
   }
 
-  // Obtenir des recommandations personnalisées
-  getPersonalizedRecommendations(userId: number, countryCode: string) {
-    const profile = this.getUserProfile(userId);
-    if (!profile) return null;
-
-    const recommendations = {
-      jobs: [],
-      universities: [],
-      housing: [],
-      places: [],
-      integrationTips: []
-    };
-
-    // Recommandations basées sur le statut
-    switch (profile.status) {
-      case 'worker':
-        recommendations.integrationTips.push(
-          'Recherchez des groupes professionnels dans votre domaine',
-          'Inscrivez-vous aux événements de networking locaux',
-          'Explorez les opportunités de formation continue'
-        );
-        break;
-      
-      case 'student':
-        recommendations.integrationTips.push(
-          'Rejoignez les associations étudiantes',
-          'Participez aux événements d\'orientation',
-          'Explorez les programmes d\'échange culturel'
-        );
-        break;
-      
-      case 'resident':
-        recommendations.integrationTips.push(
-          'Inscrivez-vous aux services municipaux',
-          'Explorez les activités communautaires',
-          'Apprenez les traditions locales'
-        );
-        break;
-      
-      default: // tourist
-        recommendations.integrationTips.push(
-          'Découvrez les sites touristiques incontournables',
-          'Goûtez à la cuisine locale',
-          'Apprenez quelques phrases de base'
-        );
-    }
-
-    // Recommandations basées sur les intérêts
-    if (profile.profile.interests) {
-      profile.profile.interests.forEach(interest => {
-        recommendations.places.push(`Lieux liés à ${interest}`);
-      });
-    }
-
-    return recommendations;
-  }
-
-  // Calculer le score de compatibilité avec un pays
-  calculateCountryCompatibility(userId: number, countryCode: string): number {
-    const profile = this.getUserProfile(userId);
-    if (!profile) return 0;
-
-    let score = 50; // Score de base
-
-    // Facteurs positifs
-    if (profile.profile.travelHistory?.includes(countryCode)) {
-      score += 20; // Déjà visité
-    }
-
-    if (profile.preferences.language === 'en' && ['US', 'GB', 'AU', 'CA'].includes(countryCode)) {
-      score += 15; // Langue compatible
-    }
-
-    if (profile.preferences.language === 'fr' && ['FR', 'CA', 'SN', 'ML'].includes(countryCode)) {
-      score += 15; // Langue compatible
-    }
-
-    // Facteurs basés sur le statut
-    switch (profile.status) {
-      case 'student':
-        if (['US', 'GB', 'CA', 'FR', 'DE'].includes(countryCode)) {
-          score += 10; // Pays avec bonnes universités
-        }
-        break;
-      
-      case 'worker':
-        if (['US', 'GB', 'CA', 'DE', 'AU'].includes(countryCode)) {
-          score += 10; // Pays avec bonnes opportunités d'emploi
-        }
-        break;
-    }
-
-    return Math.min(100, Math.max(0, score));
-  }
-
-  // Méthodes privées
-  private getAllProfiles(): UserProfile[] {
+  async getPersonalizedRecommendations(userId: number, countryCode: string): Promise<any> {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.get(`/users/${userId}/recommendations?countryCode=${countryCode}`);
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error('Échec de la récupération des recommandations');
     } catch (error) {
-      console.error('Erreur lors de la récupération des profils:', error);
-      return [];
+      console.error('Erreur lors de la récupération des recommandations:', error);
+      throw error;
+    }
+  }
+
+  async calculateCountryCompatibility(userId: number, countryCode: string): Promise<number> {
+    try {
+      if (!apiClient.isOnline()) throw new Error('Backend non disponible');
+      const response = await apiClient.get<{ score: number }>(`/users/${userId}/compatibility?countryCode=${countryCode}`);
+      if (response.success && response.data) {
+        return response.data.score;
+      }
+      throw new Error('Échec du calcul de compatibilité');
+    } catch (error) {
+      console.error('Erreur lors du calcul de compatibilité:', error);
+      throw error;
     }
   }
 }

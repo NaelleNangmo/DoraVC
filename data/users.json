@@ -10,7 +10,8 @@
     "preferences": {
       "language": "fr",
       "currency": "EUR"
-    }
+    },
+    "suspended": false
   },
   {
     "id": 2,
@@ -23,7 +24,8 @@
     "preferences": {
       "language": "fr",
       "currency": "USD"
-    }
+    },
+    "suspended": false
   },
   {
     "id": 3,
@@ -36,6 +38,7 @@
     "preferences": {
       "language": "fr",
       "currency": "XAF"
-    }
+    },
+    "suspended": false
   }
 ]
