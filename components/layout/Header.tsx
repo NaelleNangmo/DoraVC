@@ -237,6 +237,60 @@ export function Header() {
         </div>
       </header>
 
+      {/* ✅ Menu mobile affiché uniquement quand isMenuOpen === true */}
+      {isMenuOpen && (
+        <div className="md:hidden border-b bg-background">
+          <nav className="flex flex-col px-4 py-2 space-y-2">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
+            <div className="flex items-center justify-between py-2">
+              <ThemeToggle />
+              <LanguageToggle />
+            </div>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Mon profil
+                </Link>
+                <Button
+                  onClick={() => {
+                    logout();
+                    setIsMenuOpen(false);
+                  }}
+                  variant="ghost"
+                  className="text-left"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Déconnexion
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => {
+                  setIsLoginModalOpen(true);
+                  setIsMenuOpen(false);
+                }}
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Se connecter
+              </Button>
+            )}
+          </nav>
+        </div>
+      )}
+
       <LoginModal open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />
     </>
   );
